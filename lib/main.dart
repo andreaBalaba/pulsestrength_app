@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:pulsestrength/screens/home/home_page.dart';
+import 'package:get/get.dart';
+import 'package:pulsestrength/features/splash/screen/splash_page.dart';
+import 'package:pulsestrength/res/global_variables.dart';
+
 
 void main() {
+  
   runApp(const MyApp());
 }
 
@@ -11,13 +15,14 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
+    return GetMaterialApp(
       title: 'PulseStrength',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
+        appBarTheme: const AppBarTheme(backgroundColor: AppColors.pWhiteColor)
       ),
-      home: const HomePage(),
+      home: const SplashPage(),
     );
   }
 }
