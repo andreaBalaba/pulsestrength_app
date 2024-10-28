@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pulsestrength/res/global_variables.dart';
+import 'package:pulsestrength/utils/global_variables.dart';
+
 
 class ReusableButton extends StatelessWidget {
   final String text;

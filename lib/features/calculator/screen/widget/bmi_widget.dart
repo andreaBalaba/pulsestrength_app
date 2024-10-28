@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/calculator/controller/side_calculator_controller.dart';
-import 'package:pulsestrength/res/global_variables.dart';
+import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 
 class BmiWidget extends StatelessWidget {
@@ -189,7 +189,7 @@ class BmiWidget extends StatelessWidget {
                     child: Obx(() {
                       String resultText = calculatorController.bmiCategory.value.isNotEmpty
                           ? "Your BMI: ${calculatorController.bmi.value.toStringAsFixed(1)}\nClassification: ${calculatorController.bmiCategory.value}"
-                          : "Enter details to calculate BMI";
+                          : "Enter details to calculate BMI.";
                       return ReusableText(
                         text: resultText,
                         color: AppColors.pWhiteColor,

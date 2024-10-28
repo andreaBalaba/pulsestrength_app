@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pulsestrength/res/global_assets.dart';
-import 'package:pulsestrength/res/global_variables.dart';
+import 'package:pulsestrength/utils/global_assets.dart';
+import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 
 class ProteinWidget extends StatelessWidget {

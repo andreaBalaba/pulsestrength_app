@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 import 'package:pulsestrength/features/calculator/screen/widget/bmi_widget.dart';
 import 'package:pulsestrength/features/calculator/screen/widget/calories_widget.dart';
 import 'package:pulsestrength/features/calculator/screen/widget/protein_widget.dart';
-import 'package:pulsestrength/res/global_variables.dart';
+import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
+
 
 class MainCalculatorPage extends StatefulWidget {
   const MainCalculatorPage({super.key});
@@ -16,13 +17,13 @@ class MainCalculatorPage extends StatefulWidget {
 class _MainCalculatorPageState extends State<MainCalculatorPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  late PageController _pageController; // Added PageController
+  late PageController _pageController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _pageController = PageController(); // Initialize PageController
+    _pageController = PageController();
 
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
@@ -31,10 +32,11 @@ class _MainCalculatorPageState extends State<MainCalculatorPage>
     });
   }
 
+
   @override
   void dispose() {
     _tabController.dispose();
-    _pageController.dispose(); // Dispose of PageController
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -49,7 +51,7 @@ class _MainCalculatorPageState extends State<MainCalculatorPage>
         surfaceTintColor: AppColors.pNoColor,
         elevation: 0,
         iconTheme: const IconThemeData(
-          color: Colors.white54, // Back button color
+          color: Colors.white54,
         ),
         title: ReusableText(
           text: "",
@@ -83,16 +85,14 @@ class _MainCalculatorPageState extends State<MainCalculatorPage>
           _tabController.animateTo(index);
         },
         children: const [
-          // Uncomment and implement these widgets when ready
-           ProteinWidget(),
-           BmiWidget(),
-           CaloriesWidget()
+          ProteinWidget(),
+          BmiWidget(),
+          CaloriesWidget(),
         ],
       ),
     );
   }
 
-  // Helper to build custom tabs
   Widget _buildCustomTab(String text, int index, double autoScale) {
     bool isSelected = _tabController.index == index;
 

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/home/controller/home_controller.dart';
-import 'package:pulsestrength/res/global_assets.dart';
-import 'package:pulsestrength/res/global_variables.dart';
+import 'package:pulsestrength/features/settings/screen/setting_page.dart';
+import 'package:pulsestrength/utils/global_assets.dart';
+import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   // Variables for draggable button
   bool _isButtonDragged = false;
   double _buttonVerticalPosition = 0;
+
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +40,8 @@ class _HomePageState extends State<HomePage> {
               height: 30 * autoScale,
             ),
             onPressed: () {
-              // Handle settings icon tap
+              Get.to(() => SettingsPage(), transition: Transition.rightToLeft);
             },
-            padding: const EdgeInsets.only(right: 20),
           ),
         ],
         title: GestureDetector(

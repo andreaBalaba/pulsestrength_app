@@ -1,9 +1,9 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
-import 'package:pulsestrength/res/global_assets.dart';
-import 'package:pulsestrength/res/global_variables.dart';
+import 'package:pulsestrength/features/authentication/screen/login_page.dart';
+import 'package:pulsestrength/utils/global_assets.dart';
+import 'package:pulsestrength/utils/global_variables.dart';
 
 
 class SplashPage extends StatefulWidget {
@@ -21,7 +21,7 @@ class _SplashPageState extends State<SplashPage> {
     super.initState();
 
     Future.delayed(Duration(milliseconds: duration * 6), () {
-        Get.off(()=>const HomePage());
+        Get.off(()=>const  LogInPage()); //HomePage()); //
     });
 
   }

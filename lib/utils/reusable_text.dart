@@ -12,6 +12,8 @@ class ReusableText extends StatelessWidget {
     this.maxLines,
     this.overflow,
     this.height,
+    this.letterSpacing, // Added letterSpacing parameter
+    this.wordSpacing, // Added wordSpacing parameter
   });
 
   final String text;
@@ -22,6 +24,8 @@ class ReusableText extends StatelessWidget {
   final int? maxLines;
   final TextOverflow? overflow;
   final double? height;
+  final double? letterSpacing; // New parameter for letter spacing
+  final double? wordSpacing; // New parameter for word spacing
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +39,7 @@ class ReusableText extends StatelessWidget {
         fontWeight: fontWeight,
         color: color,
         height: height,
+        letterSpacing: letterSpacing, // Apply letter spacing
       ),
     );
   }

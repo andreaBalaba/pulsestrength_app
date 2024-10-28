@@ -9,6 +9,7 @@ class ImageAssets {
 }
 
 class IconAssets {
+  static const String pGoogleIcon = "assets/icons/Google.png";
   static const String pSideIcon = "assets/icons/sideIcon.png";
   static const String pUserIcon = "assets/icons/user.png";
   static const String pSettingIcon = "assets/icons/Settings.png";
