@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:pulsestrength/features/splash/screen/splash_page.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 
-
 void main() {
   
   runApp(const MyApp());
