@@ -1,17 +1,15 @@
-//dito yung mga logic sa chatbot
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:pulsestrength/features/chatbot/controller/chatbot_controller.dart'; // Import ChatbotScreen
 import 'dart:convert'; // For jsonEncode and jsonDecode
 
-
 class ChatBotScreen extends StatefulWidget {
+  const ChatBotScreen({super.key});
+
   @override
-  _ChatBotScreenState createState() => _ChatBotScreenState();
+  ChatBotScreenState createState() => ChatBotScreenState();
 }
 
-class _ChatBotScreenState extends State<ChatBotScreen> {
+class ChatBotScreenState extends State<ChatBotScreen> {
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, String>> _messages = [];
   bool _isTyping = false;
@@ -32,26 +30,27 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
   }
 
   Future<String> sendToGeminiAPI(String message) async {
-    // Replace this with your actual Gemini API endpoint and API key
     const String apiKey = "AIzaSyALho2K2wuPwaJYvHWn90PVWO8bYNnV4BQ";
     const String apiUrl = "https://api.openai.com/v1/engines/gemini/messages";
 
-    final response = await http.post(
-      Uri.parse(apiUrl)
-      ,headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
-      body: jsonEncode({
-        'message': message,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $apiKey',
+        },
+        body: jsonEncode({'message': message}),
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['reply'] ?? "I couldn't understand that. Can you please rephrase?";
-    } else {
-      return "Something went wrong. Please try again.";
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['reply'] ?? "I couldn't understand that. Can you please rephrase?";
+      } else {
+        return "Something went wrong. Please try again.";
+      }
+    } catch (e) {
+      return "Error: Unable to connect to the server.";
     }
   }
 
@@ -59,14 +58,14 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chatbot'),
+        title: const Text('Chatbot'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings),
+            icon: const Icon(Icons.settings),
             onPressed: () {
               // Navigate to settings
             },
@@ -86,8 +85,8 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                       ? Alignment.centerRight
                       : Alignment.centerLeft,
                   child: Container(
-                    padding: EdgeInsets.all(12),
-                    margin: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     decoration: BoxDecoration(
                       color: message['sender'] == 'user'
                           ? Colors.orange
@@ -96,7 +95,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                     ),
                     child: Text(
                       message['text']!,
-                      style: TextStyle(color: Colors.black),
+                      style: const TextStyle(color: Colors.black),
                     ),
                   ),
                 );
@@ -104,8 +103,8 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
             ),
           ),
           if (_isTyping)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
+            const Padding(
+              padding: EdgeInsets.all(8.0),
               child: Text("Bot is typing..."),
             ),
           // Message input bar
@@ -116,14 +115,14 @@ class _ChatBotScreenState extends State<ChatBotScreen> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Type your message...',
                       border: OutlineInputBorder(),
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: const Icon(Icons.send),
                   onPressed: () {
                     if (_messageController.text.isNotEmpty) {
                       sendMessage(_messageController.text);
