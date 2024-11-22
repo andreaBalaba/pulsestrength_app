@@ -11,21 +11,21 @@ class FirstOnboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.pPurpleColor, // Use your main purple color
+      color: AppColors.pPurpleColor,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           const Spacer(flex: 1),
           Image.asset(
             ImageAssets.pCalculatorLogo,
-            width: 200 * autoScale, // Use autoScale for responsive width
-            height: 200 * autoScale, // Use autoScale for responsive height
+            width: 200 * autoScale,
+            height: 200 * autoScale,
           ),
-          SizedBox(height: 40 * autoScale), // Use autoScale for spacing
+          SizedBox(height: 40 * autoScale),
           ReusableText(
             text: 'Calculate\nit right!',
-            size: 32 * autoScale, // Responsive font size
-            color: AppColors.pWhiteColor, // Change to your desired color
+            size: 32 * autoScale,
+            color: AppColors.pWhiteColor,
             align: TextAlign.center,
             letterSpacing: 3,
           ),

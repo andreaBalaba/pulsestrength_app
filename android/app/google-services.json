@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "36518426934",
+    "firebase_url": "https://ite-pulsestrength-default-rtdb.firebaseio.com",
+    "project_id": "ite-pulsestrength",
+    "storage_bucket": "ite-pulsestrength.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:36518426934:android:fcff41c5353d044525db97",
+        "android_client_info": {
+          "package_name": "com.pulsestrengthproj.pulsestrength"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "36518426934-jbd500d349rgs6fs9mrvta7g8autc9g7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pulsestrengthproj.pulsestrength",
+            "certificate_hash": "8d0b5c33160d198af66a4a81596af4d0ca74470e"
+          }
+        },
+        {
+          "client_id": "36518426934-k28u6d516r3hi8ukm1ab6v0pd4c8dhmu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPVqmkMwSy_9LgbJq_aM-6CWEd8iHY-gw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "36518426934-k28u6d516r3hi8ukm1ab6v0pd4c8dhmu.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "36518426934-uftr185jmctq6igolscibkcdgtr9jqob.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pulsestrengthproj.pulsestrength"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

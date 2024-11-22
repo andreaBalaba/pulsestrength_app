@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/calculator/controller/side_calculator_controller.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
@@ -9,7 +10,10 @@ class ProteinWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final RxDouble weight = 0.0.obs;
+    final CalculatorController calculatorController = Get.put(CalculatorController());
+
+    // Ensure user data is fetched and weight is initialized
+    calculatorController.fetchUserData();
 
     double screenWidth = Get.width;
     double autoScale = screenWidth / 400;
@@ -27,10 +31,12 @@ class ProteinWidget extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: screenWidth * 0.35,
-                    child: TextField(
+                    child: Obx(() => TextField(
+                      controller: calculatorController.weightController
+                        ..text = calculatorController.weight.value.toString(),
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        weight.value = double.tryParse(value) ?? 0.0;
+                        calculatorController.weight.value = int.tryParse(value) ?? 0; // Keep the weight editable
                       },
                       decoration: InputDecoration(
                         hintText: 'Weight',
@@ -49,13 +55,13 @@ class ProteinWidget extends StatelessWidget {
                           borderSide: const BorderSide(color: AppColors.pGreyColor),
                         ),
                       ),
-                    ),
+                    )),
                   ),
                   const SizedBox(width: 5),
-                  ReusableText( text: "kg", size: 18 * autoScale),
+                  ReusableText(text: "kg", size: 18 * autoScale),
                   const SizedBox(width: 10),
                   ReusableText(
-                    text: "÷ 0.8g",
+                    text: "x 0.8g",
                     fontWeight: FontWeight.bold,
                     size: 28 * autoScale,
                   ),
@@ -79,7 +85,7 @@ class ProteinWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Obx(() => ReusableText(
-                      text: '${(weight.value * 0.8).toInt()}g', // Display protein intake
+                      text: '${(calculatorController.weight.value * 0.8).toInt()}g', // Protein formula
                       size: 36 * autoScale,
                       color: AppColors.pWhiteColor,
                       fontWeight: FontWeight.bold,
@@ -103,9 +109,10 @@ class ProteinWidget extends StatelessWidget {
                       ],
                     ),
                     ReusableText(
-                      text: 'For adults: The RDA for adults is\n approximately 0.8 grams of protein per Kg of body weight. '
+                      text:
+                      'For adults: The RDA for adults is\n approximately 0.8 grams of protein per Kg of body weight. '
                           'To calculate this, divide your weight in kilograms by 0.8. '
-                          'For example, a person weighing 68 kilograms would need about 54 grams of protein per day (68 kg ÷ 0.8 = 54 g).',
+                          'For example, a person weighing 68 kilograms would need about 54 grams of protein per day (68 kg x 0.8 = 54 g).',
                       color: AppColors.pWhiteColor,
                       size: 14 * autoScale,
                       align: TextAlign.center,

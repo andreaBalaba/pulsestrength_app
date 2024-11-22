@@ -49,26 +49,17 @@ class CaloriesWidget extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Obx(() => Radio<String>(
-                            value: 'Male',
-                            groupValue: calculatorController.gender.value,
-                            onChanged: (String? value) {
-                              calculatorController.gender.value = value ?? "Male";
-                            },
+                          ReusableText(
+                            text: 'Gender:',
+                            fontWeight: FontWeight.w500,
+                            size: 16 * autoScale,
+                          ),
+                          const SizedBox(width: 8),
+                          Obx(() => ReusableText(
+                            text: calculatorController.gender.value,
+                            fontWeight: FontWeight.w500,
+                            size: 16 * autoScale,
                           )),
-                          ReusableText(text: 'Male', fontWeight: FontWeight.w500, size: 16 * autoScale),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Obx(() => Radio<String>(
-                            value: 'Female',
-                            groupValue: calculatorController.gender.value,
-                            onChanged: (String? value) {
-                              calculatorController.gender.value = value ?? "Male";
-                            },
-                          )),
-                          ReusableText(text: 'Female', fontWeight: FontWeight.w500, size: 16 * autoScale),
                         ],
                       ),
                     ],
@@ -88,7 +79,7 @@ class CaloriesWidget extends StatelessWidget {
                       controller: calculatorController.CalweightController,
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        calculatorController.weight.value = double.tryParse(value) ?? 0.0;
+                        calculatorController.weight.value = int.tryParse(value) ?? 0; // Updated to handle as int
                       },
                       decoration: InputDecoration(
                         hintText: 'Weight',
@@ -117,7 +108,7 @@ class CaloriesWidget extends StatelessWidget {
                       controller: calculatorController.CalheightController,
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        calculatorController.height.value = double.tryParse(value) ?? 0.0;
+                        calculatorController.height.value = int.tryParse(value) ?? 0; // Updated to handle as int
                       },
                       decoration: InputDecoration(
                         hintText: 'Height',

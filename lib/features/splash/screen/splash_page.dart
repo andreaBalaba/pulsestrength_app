@@ -2,9 +2,10 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
+import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -19,11 +20,29 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
+    _navigateBasedOnStatus();
+  }
 
-    Future.delayed(Duration(milliseconds: duration * 6), () {
-        Get.off(()=>const  LogInPage()); //HomePage()); //
-    });
+  Future<void> _navigateBasedOnStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+      final String? lastPage = prefs.getString('lastPage');
 
+      if (isLoggedIn) {
+        // Navigate to lastPage if it's HomePage, otherwise default to HomePage
+        if (lastPage == 'HomePage') {
+          Get.off(() => const HomePage());
+        } else {
+          Get.off(() => const HomePage()); // Default to HomePage for logged-in users
+        }
+      } else {
+        Get.off(() => const LogInPage());
+      }
+    } catch (e) {
+      print("Error navigating based on status: $e");
+      Get.off(() => const LogInPage());
+    }
   }
 
   @override
@@ -36,6 +55,7 @@ class _SplashPageState extends State<SplashPage> {
         children: [
           Center(
             child: ZoomIn(
+              duration: Duration(milliseconds: duration),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -47,7 +67,7 @@ class _SplashPageState extends State<SplashPage> {
                 ],
               ),
             ),
-          )
+          ),
         ],
       ),
     );

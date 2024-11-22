@@ -5,7 +5,7 @@ import 'package:pulsestrength/utils/reusable_text.dart';
 
 class FourthOnboardPage extends StatelessWidget {
   final double autoScale;
-  final VoidCallback onComplete; // Add a callback for navigation
+  final VoidCallback onComplete;
 
   const FourthOnboardPage({super.key, required this.autoScale, required this.onComplete});
 
@@ -18,26 +18,26 @@ class FourthOnboardPage extends StatelessWidget {
           Align(
             alignment: Alignment.bottomRight,
             child: Image.asset(
-              ImageAssets.pCalculatorOBThree, // Update with the correct asset path
-              width: 250 * autoScale, // Adjust width as needed
+              ImageAssets.pCalculatorOBThree,
+              width: 250 * autoScale,
               fit: BoxFit.cover,
             ),
           ),
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center, // Align children to the center
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Image.asset(
                   ImageAssets.pCalculatorLogo,
-                  width: 150 * autoScale, // Responsive size
-                  height: 150 * autoScale, // Responsive size
+                  width: 150 * autoScale,
+                  height: 150 * autoScale,
                 ),
-                SizedBox(height: 40 * autoScale), // Responsive padding
+                SizedBox(height: 40 * autoScale),
                 ReusableText(
                   text: 'Know How Many\n Calories You\n Burn Every Day',
-                  size: 32 * autoScale, // Responsive font size
-                  color: AppColors.pWhiteColor, // Desired color
+                  size: 32 * autoScale,
+                  color: AppColors.pWhiteColor,
                   align: TextAlign.center,
                   letterSpacing: 3,
                 ),
@@ -55,9 +55,9 @@ class FourthOnboardPage extends StatelessWidget {
                     ),
                     child: const ReusableText(
                       text: 'Get Started',
-                      size: 18, // Adjust font size if needed
+                      size: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.pPurpleColor, // Button text color
+                      color: AppColors.pPurpleColor,
                     ),
                   ),
                 ),

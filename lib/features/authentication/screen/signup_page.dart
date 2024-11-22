@@ -1,6 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/authentication/controller/login_controller.dart';
+import 'package:pulsestrength/features/authentication/controller/signup_controller.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
@@ -14,21 +16,12 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final SignUpController controller = Get.put(SignUpController());
+  double autoScale = Get.width / 360;
 
-  final FocusNode _usernameFocusNode = FocusNode();
-  final FocusNode _emailFocusNode = FocusNode();
-  final FocusNode _passwordFocusNode = FocusNode();
-  final FocusNode _confirmPasswordFocusNode = FocusNode();
+  bool isPasswordVisible = false;
+  bool isConfirmPasswordVisible = false;
 
-  bool _isPasswordVisible = false;
-  bool _isTermsAccepted = false;
-  final bool _passwordsMatch = true;
-
-  double get autoScale => Get.width / 400;
 
   @override
   Widget build(BuildContext context) {
@@ -49,22 +42,47 @@ class _SignUpPageState extends State<SignUpPage> {
                   color: AppColors.pDarkGreyColor,
                 ),
                 const SizedBox(height: 30),
-                _buildTextField("Name", _usernameController, false, _usernameFocusNode, _emailFocusNode),
+                _buildTextField("Name", controller.usernameController, false, false, () {}),
                 SizedBox(height: 25 * autoScale),
-                _buildTextField("Email Address", _emailController, false, _emailFocusNode, _passwordFocusNode),
+                _buildTextField("Email Address", controller.emailController, false, false, () {}),
                 SizedBox(height: 25 * autoScale),
-                _buildTextField("Password", _passwordController, true, _passwordFocusNode, _confirmPasswordFocusNode),
+                _buildTextField("Password", controller.passwordController, true, isPasswordVisible, () {
+                  setState(() {
+                    isPasswordVisible = !isPasswordVisible;
+                  });
+                }),
                 SizedBox(height: 25 * autoScale),
-                _buildTextField("Confirm Password", _confirmPasswordController, true, _confirmPasswordFocusNode, null),
-                if (!_passwordsMatch)
-                  Padding(
-                    padding: EdgeInsets.only(top: 8 * autoScale),
-                    child: ReusableText(
-                      text: 'Passwords do not match',
-                      color: AppColors.pSOrangeColor,
-                      size: 12 * autoScale,
-                    ),
-                  ),
+                _buildTextField("Confirm Password", controller.confirmPasswordController, true, isConfirmPasswordVisible, () {
+                  setState(() {
+                    isConfirmPasswordVisible = !isConfirmPasswordVisible;
+                  });
+                }),
+
+
+                Obx(() {
+                  return Column(
+                    children: [
+                      if (!controller.passwordsMatch.value)
+                        Padding(
+                          padding: EdgeInsets.only(top: 8 * autoScale),
+                          child: ReusableText(
+                            text: 'Passwords do not match',
+                            color: AppColors.pSOrangeColor,
+                            size: 12 * autoScale,
+                          ),
+                        )
+                      else if (controller.confirmPasswordController.text.isNotEmpty)
+                        Padding(
+                          padding: EdgeInsets.only(top: 8 * autoScale),
+                          child: ReusableText(
+                            text: 'Passwords match',
+                            color: AppColors.pGreenColor,
+                            size: 12 * autoScale,
+                          ),
+                        ),
+                    ],
+                  );
+                }),
                 SizedBox(height: 20 * autoScale),
                 _buildDivider("Continue with"),
                 SizedBox(height: 20 * autoScale),
@@ -74,7 +92,14 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(height: 30 * autoScale),
                 _buildLoginText(),
                 SizedBox(height: 30 * autoScale),
-                _buildSignUpButton(),
+
+                // Show loading indicator or Sign Up button
+                Obx(() {
+                  return controller.isLoading.value
+                      ? const CircularProgressIndicator(color: AppColors.pGreenColor)
+                      : _buildSignUpButton();
+                }),
+                SizedBox(height: 40 * autoScale),
               ],
             ),
           ),
@@ -83,7 +108,8 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildTextField(String hintText, TextEditingController controller, bool isPasswordField, FocusNode currentFocusNode, FocusNode? nextFocusNode) {
+  Widget _buildTextField(
+      String hintText, TextEditingController textController, bool isPasswordField, bool isPasswordVisible, Function toggleVisibility) {
     return Container(
       height: 50 * autoScale,
       decoration: BoxDecoration(
@@ -99,20 +125,9 @@ class _SignUpPageState extends State<SignUpPage> {
         ],
       ),
       child: TextField(
-        controller: controller,
-        focusNode: currentFocusNode,
-        obscureText: isPasswordField && !_isPasswordVisible,
-        textInputAction: nextFocusNode != null ? TextInputAction.next : TextInputAction.done,
-        onSubmitted: (_) {
-          if (nextFocusNode != null) {
-            FocusScope.of(context).requestFocus(nextFocusNode);
-          }
-        },
-        style: TextStyle(
-          color: AppColors.pBlackColor,
-          fontFamily: 'Poppins',
-          fontSize: 14 * autoScale,
-        ),
+        controller: textController,
+        obscureText: isPasswordField && !isPasswordVisible,
+        textInputAction: TextInputAction.next,
         cursorColor: AppColors.pGrey800Color,
         decoration: InputDecoration(
           isDense: true,
@@ -127,14 +142,10 @@ class _SignUpPageState extends State<SignUpPage> {
           suffixIcon: isPasswordField
               ? IconButton(
             icon: Icon(
-              _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+              isPasswordVisible ? Icons.visibility : Icons.visibility_off,
               color: AppColors.pGrey800Color,
             ),
-            onPressed: () {
-              setState(() {
-                _isPasswordVisible = !_isPasswordVisible;
-              });
-            },
+            onPressed: () => toggleVisibility(),
           )
               : null,
         ),
@@ -142,17 +153,16 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
+
   Widget _buildDivider(String text) {
     return Row(
       children: [
-        const Expanded(
-            child: Divider(thickness: 1, color: AppColors.pBlackColor)),
+        const Expanded(child: Divider(thickness: 1, color: AppColors.pBlackColor)),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 8 * autoScale),
           child: ReusableText(text: text, size: 12 * autoScale),
         ),
-        const Expanded(
-            child: Divider(thickness: 1, color: AppColors.pBlackColor)),
+        const Expanded(child: Divider(thickness: 1, color: AppColors.pBlackColor)),
       ],
     );
   }
@@ -162,8 +172,10 @@ class _SignUpPageState extends State<SignUpPage> {
       width: double.infinity,
       height: 50 * autoScale,
       child: ElevatedButton.icon(
-        onPressed: () {
-          // Google sign-in logic here
+        onPressed: () async {
+          await controller.signInOrSignUpWithGoogle(onPrompt: (message) {
+            Get.snackbar("Google Auth", message);
+          });
         },
         icon: Image.asset(
           IconAssets.pGoogleIcon,
@@ -189,15 +201,15 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _buildTermsCheckbox() {
     return Row(
       children: [
-        Checkbox(
-          value: _isTermsAccepted,
-          onChanged: (value) {
-            setState(() {
-              _isTermsAccepted = value!;
-            });
-          },
-          activeColor: AppColors.pGreenColor,
-        ),
+        Obx(() {
+          return Checkbox(
+            value: controller.isTermsAccepted.value,
+            onChanged: (value) {
+              controller.isTermsAccepted.value = value!;
+            },
+            activeColor: AppColors.pGreenColor,
+          );
+        }),
         Expanded(
           child: RichText(
             text: TextSpan(
@@ -261,6 +273,10 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
+
+                final loginController = Get.find<LoginController>();
+                loginController.clearForm();
+
                 Get.to(() => const LogInPage());
               },
           ),
@@ -274,13 +290,12 @@ class _SignUpPageState extends State<SignUpPage> {
       width: 150 * autoScale,
       height: 50 * autoScale,
       child: ElevatedButton(
-        onPressed: () {
-          // Sign-Up action
-        },
+        onPressed: controller.signUp,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.pTFColor,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18 * autoScale)),
+            borderRadius: BorderRadius.circular(18 * autoScale),
+          ),
         ),
         child: ReusableText(
           text: "Sign Up",

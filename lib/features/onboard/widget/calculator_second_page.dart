@@ -29,14 +29,14 @@ class SecondOnboardPage extends StatelessWidget {
               children: [
                 Image.asset(
                   ImageAssets.pCalculatorLogo,
-                  width: 200 * autoScale, // Responsive size
-                  height: 200 * autoScale, // Responsive size
+                  width: 200 * autoScale,
+                  height: 200 * autoScale,
                 ),
-                SizedBox(height: 40 * autoScale), // Responsive padding
+                SizedBox(height: 40 * autoScale),
                 ReusableText(
                   text: 'Track your \nfood!',
-                  size: 32 * autoScale, // Responsive font size
-                  color: AppColors.pWhiteColor, // Change to your desired color
+                  size: 32 * autoScale,
+                  color: AppColors.pWhiteColor,
                   align: TextAlign.center,
                   letterSpacing: 3,
                 ),

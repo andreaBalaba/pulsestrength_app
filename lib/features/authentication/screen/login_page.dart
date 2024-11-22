@@ -1,8 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/authentication/controller/login_controller.dart';
+import 'package:pulsestrength/features/authentication/controller/signup_controller.dart';
 import 'package:pulsestrength/features/authentication/screen/signup_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
@@ -15,13 +16,11 @@ class LogInPage extends StatefulWidget {
 }
 
 class _LogInPageState extends State<LogInPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final FocusNode _emailFocusNode = FocusNode(); // FocusNode for email field
-  final FocusNode _passwordFocusNode = FocusNode(); // FocusNode for password field
-  bool _isPasswordVisible = false; // State variable for password visibility
+  final SignUpController googlecontroller = Get.put(SignUpController());
+  final LoginController controller = Get.put(LoginController(), permanent: true);
+  double get autoScale => Get.width / 360;
+  bool _isPasswordVisible = false;
 
-  double get autoScale => Get.width / 400; // Responsive scaling factor
 
   @override
   Widget build(BuildContext context) {
@@ -40,16 +39,13 @@ class _LogInPageState extends State<LogInPage> {
                 _buildTextField(
                   hintText: 'Email',
                   isPasswordField: false,
-                  controller: _emailController,
-                  focusNode: _emailFocusNode,
-                  nextFocusNode: _passwordFocusNode, // Move to password on 'Next'
+                  controller: controller.emailController,
                 ),
                 SizedBox(height: 25 * autoScale),
                 _buildTextField(
                   hintText: 'Password',
                   isPasswordField: true,
-                  controller: _passwordController,
-                  focusNode: _passwordFocusNode,
+                  controller: controller.passwordController,
                 ),
                 SizedBox(height: 20 * autoScale),
                 _buildContinueDivider(),
@@ -58,7 +54,14 @@ class _LogInPageState extends State<LogInPage> {
                 SizedBox(height: 30 * autoScale),
                 _buildSignUpText(),
                 SizedBox(height: 30 * autoScale),
-                _buildLoginButton(),
+
+                // Login button with loading indicator
+                Obx(() {
+                  return controller.isLoading.value
+                      ? const CircularProgressIndicator(color: AppColors.pGreenColor,)
+                      : _buildLoginButton();
+                }),
+
                 SizedBox(height: 30 * autoScale),
               ],
             ),
@@ -83,8 +86,8 @@ class _LogInPageState extends State<LogInPage> {
     required String hintText,
     required bool isPasswordField,
     required TextEditingController controller,
-    FocusNode? focusNode, // Add focusNode parameter
-    FocusNode? nextFocusNode, // Add nextFocusNode for chaining focus
+    FocusNode? focusNode,
+    FocusNode? nextFocusNode,
   }) {
     return Container(
       height: 50 * autoScale,
@@ -102,7 +105,7 @@ class _LogInPageState extends State<LogInPage> {
       ),
       child: TextField(
         controller: controller,
-        focusNode: focusNode, // Set focusNode
+        focusNode: focusNode,
         obscureText: isPasswordField && !_isPasswordVisible,
         style: TextStyle(
           color: AppColors.pBlackColor,
@@ -111,10 +114,10 @@ class _LogInPageState extends State<LogInPage> {
         ),
         cursorColor: AppColors.pGrey800Color,
         textAlignVertical: TextAlignVertical.center,
-        textInputAction: isPasswordField ? TextInputAction.done : TextInputAction.next, // Set input action
+        textInputAction: isPasswordField ? TextInputAction.done : TextInputAction.next,
         onSubmitted: (value) {
           if (nextFocusNode != null) {
-            FocusScope.of(context).requestFocus(nextFocusNode); // Move focus to the next field
+            FocusScope.of(context).requestFocus(nextFocusNode);
           }
         },
         decoration: InputDecoration(
@@ -173,11 +176,13 @@ class _LogInPageState extends State<LogInPage> {
 
   Widget _buildGoogleButton() {
     return SizedBox(
-      width: double.infinity, // Full width to match the TextField width
+      width: double.infinity,
       height: 50 * autoScale,
       child: ElevatedButton.icon(
-        onPressed: () {
-          // Google sign-in logic here
+        onPressed: () async {
+          await googlecontroller.signInOrSignUpWithGoogle(onPrompt: (message) {
+            Get.snackbar("Google Auth", message);
+          });
         },
         icon: Image.asset(
           IconAssets.pGoogleIcon,
@@ -218,7 +223,11 @@ class _LogInPageState extends State<LogInPage> {
               fontFamily: 'Poppins',
               decoration: TextDecoration.underline,
             ),
-            recognizer: TapGestureRecognizer()..onTap = () => Get.to(() => const SignUpPage()),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                googlecontroller.clearForm();
+                Get.to(() => const SignUpPage());
+              },
           ),
         ],
       ),
@@ -230,9 +239,7 @@ class _LogInPageState extends State<LogInPage> {
       width: 150 * autoScale,
       height: 50 * autoScale,
       child: ElevatedButton(
-        onPressed: () {
-          Get.offAll(const HomePage()); //temporary
-        },
+        onPressed: controller.login,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.pTFColor,
           shape: RoundedRectangleBorder(

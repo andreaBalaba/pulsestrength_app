@@ -1,16 +1,21 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CalculatorController extends GetxController {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
+
   // Observables
-  var weight = 0.0.obs;
-  var height = 0.0.obs;
+  var weight = 0.obs; // Changed to int
+  var height = 0.obs; // Changed to int
   var age = 0.obs;
-  var gender = 'Male'.obs; // Default gender selection
+  var gender = ''.obs; // Non-editable gender field
   var bmi = 0.0.obs;
   var bmiCategory = ''.obs;
   var dropdownValue = 'Activity'.obs; // Default dropdown value
-  var caloriesResultText = "Enter details to calculate calories.".obs; // Default result text for calories
+  var caloriesResultText = "Enter details to calculate calories.".obs;
 
   TextEditingController ageController = TextEditingController();
   TextEditingController weightController = TextEditingController();
@@ -19,14 +24,76 @@ class CalculatorController extends GetxController {
   TextEditingController CalweightController = TextEditingController();
   TextEditingController CalheightController = TextEditingController();
 
+  @override
+  void onInit() {
+    super.onInit();
+    fetchUserData(); // Fetch user data on initialization
+  }
+
+  // Fetch user data from Firebase
+  Future<void> fetchUserData() async {
+    try {
+      final User? user = _auth.currentUser;
+      if (user == null) {
+        throw Exception("No user is currently signed in.");
+      }
+
+      // Retrieve data from Firebase
+      final DataSnapshot snapshot = await _databaseRef.child("users").child(user.uid).get();
+
+      if (snapshot.exists) {
+        final Map<String, dynamic> userData = Map<String, dynamic>.from(snapshot.value as Map);
+
+        // Extract assessment data if it exists
+        if (userData.containsKey('assessment')) {
+          final assessment = Map<String, dynamic>.from(userData['assessment']);
+
+          // Update the fields with the fetched data
+          age.value = assessment['age'] ?? 0;
+          weight.value = (assessment['weight'] ?? 0); // Stored as int
+          height.value = (assessment['height'] ?? 0); // Stored as int
+          gender.value = assessment['gender'] ?? 'Unknown';
+
+          // Update the controllers with the fetched data
+          ageController.text = age.value.toString();
+          weightController.text = weight.value.toString();
+          heightController.text = height.value.toString();
+          CalageController.text = age.value.toString();
+          CalweightController.text = weight.value.toString();
+          CalheightController.text = height.value.toString();
+        } else {
+          Get.snackbar(
+            "Error",
+            "No assessment data found.",
+            backgroundColor: Colors.redAccent,
+            colorText: Colors.white,
+          );
+        }
+      } else {
+        Get.snackbar(
+          "Error",
+          "User data not found in the database.",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Failed to fetch user data: ${e.toString()}",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   // Method to calculate BMI
   void calculateBMI() {
-    if (areInputsValid()) { // Only calculate if inputs are valid
-      double heightInMeters = height.value / 100;
+    if (areInputsValid()) {
+      double heightInMeters = height.value / 100.0; // Convert int to meters
       bmi.value = weight.value / (heightInMeters * heightInMeters);
       bmiCategory.value = getBMIClassification(bmi.value, age.value, gender.value);
     } else {
-      // Reset BMI if inputs are invalid
       bmi.value = 0.0;
       bmiCategory.value = '';
     }
@@ -40,7 +107,7 @@ class CalculatorController extends GetxController {
         if (bmi < 24.9) return "Normal weight";
         if (bmi < 29.9) return "Overweight";
         return "Obese";
-      } else { // Female classification
+      } else {
         if (bmi < 18.0) return "Underweight";
         if (bmi < 24.0) return "Normal weight";
         if (bmi < 29.0) return "Overweight";
@@ -62,11 +129,10 @@ class CalculatorController extends GetxController {
   // Method to calculate calories
   double? calculateCalories() {
     if (dropdownValue.value == 'Activity' || !areInputsValid()) {
-      caloriesResultText.value = "Enter details to calculate calories."; // Reset result text
-      return null; // Return null to indicate no calculation
+      caloriesResultText.value = "Enter details to calculate calories.";
+      return null;
     }
 
-    // Proceed with calorie calculation if inputs are valid
     if (height.value > 0 && weight.value > 0 && age.value > 0) {
       double bmr;
       if (gender.value == "Male") {
@@ -77,18 +143,16 @@ class CalculatorController extends GetxController {
 
       double calorieMultiplier = getCalorieMultiplier();
       double calories = bmr * calorieMultiplier;
-      caloriesResultText.value = "Your daily calorie requirement: ${calories.toStringAsFixed(0)} kcal"; // Set result text
+      caloriesResultText.value = "Your daily calorie requirement: ${calories.toStringAsFixed(0)} kcal";
       return calories;
     }
     return null;
   }
 
-  // Method to check if inputs are valid
   bool areInputsValid() {
     return weight.value > 0 && height.value > 0 && age.value > 0;
   }
 
-  // Method to get calorie multiplier based on activity level
   double getCalorieMultiplier() {
     switch (dropdownValue.value) {
       case 'Sedentary: little or no exercise':
@@ -104,29 +168,27 @@ class CalculatorController extends GetxController {
       case 'Extra Active: very intense exercise daily, or physical job':
         return 2.0;
       default:
-        return 1.0; // Basal Metabolic Rate (BMR) only
+        return 1.0;
     }
   }
 
-  // Function to clear BMI inputs and results
   void clearBMIInputs() {
-    height.value = 0.0;
-    weight.value = 0.0;
+    height.value = 0;
+    weight.value = 0;
     age.value = 0;
     bmi.value = 0.0;
     bmiCategory.value = '';
-    ageController.clear(); // Clear controller text
-    weightController.clear(); // Clear controller text
-    heightController.clear(); // Clear controller text
+    ageController.clear();
+    weightController.clear();
+    heightController.clear();
   }
 
-  // Function to clear Calories inputs and results
   void clearCaloriesInputs() {
-    height.value = 0.0;
-    weight.value = 0.0;
+    height.value = 0;
+    weight.value = 0;
     age.value = 0;
-    dropdownValue.value = 'Activity'; // Reset to default dropdown value
-    caloriesResultText.value = "Enter details to calculate calories."; // Reset result text
+    dropdownValue.value = 'Activity';
+    caloriesResultText.value = "Enter details to calculate calories.";
     CalageController.clear();
     CalweightController.clear();
     CalheightController.clear();

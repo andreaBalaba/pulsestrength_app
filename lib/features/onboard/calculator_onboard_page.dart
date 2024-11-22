@@ -46,19 +46,19 @@ class _OnboardCalculatorState extends State<OnboardCalculator> {
           color: AppColors.pWhite54Color,
         ),
         actions: [
-          if (_currentPage < 3) // Show Skip button if not on the last page
+          if (_currentPage < 3)
             TextButton(
               onPressed: widget.onComplete,
               child: ReusableText(
                 text: 'Skip',
                 color: AppColors.pWhite54Color,
-                size: 16 * autoScale, // Responsive font size
+                size: 16 * autoScale,
                 fontWeight: FontWeight.bold,
               ),
             ),
         ],
       ),
-      body: Stack( // Use Stack to overlay the indicator
+      body: Stack(
         children: [
           PageView(
             controller: _pageController,
@@ -69,20 +69,20 @@ class _OnboardCalculatorState extends State<OnboardCalculator> {
               ThirdOnboardPage(autoScale: autoScale),
               FourthOnboardPage(
                 autoScale: autoScale,
-                onComplete: widget.onComplete // Call the onComplete callback to navigate,
+                onComplete: widget.onComplete
               ),
             ],
           ),
           // Smooth Page Indicator
           Align(
-            alignment: Alignment.bottomCenter, // Position the indicator at the bottom
+            alignment: Alignment.bottomCenter,
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 30.0), // Adjust padding to overlap
+              padding: const EdgeInsets.only(bottom: 30.0),
               child: SmoothPageIndicator(
                 controller: _pageController,
                 count: 4, // Number of pages
-                effect: ScrollingDotsEffect(
-                  activeDotColor: AppColors.pDeepPurple,
+                effect: const ScrollingDotsEffect(
+                  activeDotColor: AppColors.pLightPurpleColor,
                   dotColor: AppColors.pLightPurpleColor,
                   dotHeight: 8,
                   dotWidth: 8,

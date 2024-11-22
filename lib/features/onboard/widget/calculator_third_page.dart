@@ -17,28 +17,28 @@ class ThirdOnboardPage extends StatelessWidget {
           Align(
             alignment: Alignment.bottomRight,
             child: Image.asset(
-              ImageAssets.pCalculatorOBTwo, // Update with the correct asset path
-              height: 450 * autoScale, // Adjust height as needed
+              ImageAssets.pCalculatorOBTwo,
+              height: 450 * autoScale,
               fit: BoxFit.cover,
             ),
           ),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20 * autoScale), // Add some padding to the left
+            padding: EdgeInsets.symmetric(horizontal: 20 * autoScale),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start, // Align items to the left
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Image.asset(
                   ImageAssets.pCalculatorLogo,
-                  width: 150 * autoScale, // Responsive size
-                  height: 150 * autoScale, // Responsive size
+                  width: 150 * autoScale,
+                  height: 150 * autoScale,
                 ),
-                SizedBox(height: 30 * autoScale), // Responsive padding
+                SizedBox(height: 30 * autoScale),
                 ReusableText(
                   text: 'Know your\n body!',
-                  size: 32 * autoScale, // Responsive font size
-                  color: AppColors.pWhiteColor, // Desired color
-                  align: TextAlign.center, // Align text to the left
+                  size: 32 * autoScale,
+                  color: AppColors.pWhiteColor,
+                  align: TextAlign.center,
                   letterSpacing: 3,
                 ),
                 const Spacer(flex: 3),

@@ -9,7 +9,14 @@ class BmiWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final CalculatorController calculatorController = Get.put(CalculatorController());
+    final CalculatorController calculatorController =
+    Get.put(CalculatorController());
+
+    // Ensure BMI calculation is triggered after fetching user data
+    calculatorController.fetchUserData().then((_) {
+      calculatorController.calculateBMI(); // Calculate BMI after defaults are set
+    });
+
     double screenWidth = Get.width;
     double autoScale = screenWidth / 400;
 
@@ -28,10 +35,11 @@ class BmiWidget extends StatelessWidget {
                   SizedBox(
                     width: screenWidth * 0.3,
                     child: TextField(
-                      controller: calculatorController.ageController, // Use the controller from the CalculatorController
+                      controller: calculatorController.ageController,
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        calculatorController.age.value = int.tryParse(value) ?? 0;
+                        calculatorController.age.value =
+                            int.tryParse(value) ?? 0;
                         calculatorController.calculateBMI();
                       },
                       decoration: InputDecoration(
@@ -50,28 +58,16 @@ class BmiWidget extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Obx(() => Radio<String>(
-                            value: 'Male',
-                            groupValue: calculatorController.gender.value,
-                            onChanged: (String? value) {
-                              calculatorController.gender.value = value ?? "Male";
-                              calculatorController.calculateBMI();
-                            },
+                          ReusableText(
+                              text: 'Gender:',
+                              fontWeight: FontWeight.w500,
+                              size: 16 * autoScale),
+                          const SizedBox(width: 8),
+                          Obx(() => ReusableText(
+                            text: calculatorController.gender.value,
+                            fontWeight: FontWeight.w500,
+                            size: 16 * autoScale,
                           )),
-                          ReusableText(text: 'Male', fontWeight: FontWeight.w500, size: 16 * autoScale),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          Obx(() => Radio<String>(
-                            value: 'Female',
-                            groupValue: calculatorController.gender.value,
-                            onChanged: (String? value) {
-                              calculatorController.gender.value = value ?? "Male";
-                              calculatorController.calculateBMI();
-                            },
-                          )),
-                          ReusableText(text: 'Female', fontWeight: FontWeight.w500, size: 16 * autoScale),
                         ],
                       ),
                     ],
@@ -88,10 +84,11 @@ class BmiWidget extends StatelessWidget {
                   SizedBox(
                     width: screenWidth * 0.3,
                     child: TextField(
-                      controller: calculatorController.weightController, // Use the controller from the CalculatorController
+                      controller: calculatorController.weightController,
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        calculatorController.weight.value = double.tryParse(value) ?? 0.0;
+                        calculatorController.weight.value =
+                            int.tryParse(value) ?? 0; // Updated to parse as int
                         calculatorController.calculateBMI();
                       },
                       decoration: InputDecoration(
@@ -118,10 +115,11 @@ class BmiWidget extends StatelessWidget {
                   SizedBox(
                     width: screenWidth * 0.3,
                     child: TextField(
-                      controller: calculatorController.heightController, // Use the controller from the CalculatorController
+                      controller: calculatorController.heightController,
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
-                        calculatorController.height.value = double.tryParse(value) ?? 0.0;
+                        calculatorController.height.value =
+                            int.tryParse(value) ?? 0; // Updated to parse as int
                         calculatorController.calculateBMI();
                       },
                       decoration: InputDecoration(
@@ -162,9 +160,7 @@ class BmiWidget extends StatelessWidget {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          // Clear inputs in the controller
                           calculatorController.clearBMIInputs();
-                          // Also clear the TextEditingControllers
                           calculatorController.ageController.clear();
                           calculatorController.weightController.clear();
                           calculatorController.heightController.clear();
@@ -187,7 +183,8 @@ class BmiWidget extends StatelessWidget {
                   const SizedBox(height: 30),
                   Center(
                     child: Obx(() {
-                      String resultText = calculatorController.bmiCategory.value.isNotEmpty
+                      String resultText = calculatorController
+                          .bmiCategory.value.isNotEmpty
                           ? "Your BMI: ${calculatorController.bmi.value.toStringAsFixed(1)}\nClassification: ${calculatorController.bmiCategory.value}"
                           : "Enter details to calculate BMI.";
                       return ReusableText(

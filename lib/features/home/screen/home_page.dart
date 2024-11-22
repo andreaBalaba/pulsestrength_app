@@ -17,8 +17,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final HomeController homeController = Get.put(HomeController());
   int _currentIndex = 0;
-  final String userName = "Andeng Balaba";
-  // Variables for draggable button
   bool _isButtonDragged = false;
   double _buttonVerticalPosition = 0;
 
@@ -41,7 +39,7 @@ class _HomePageState extends State<HomePage> {
               height: 30 * autoScale,
             ),
             onPressed: () {
-              Get.to(() => SettingsPage(), transition: Transition.rightToLeft);
+              Get.to(() => const SettingsPage(), transition: Transition.rightToLeft);
             },
           ),
         ],
@@ -57,13 +55,23 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(width: 8.0),
               Flexible(
-                child: ReusableText(
-                  text: userName,
-                  size: 22 * autoScale,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.pBlackColor,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Obx(() {
+                  final username = homeController.username.value;
+                  if (username == null) {
+                    return ReusableText(
+                      text: "Loading...",
+                      size: 22 * autoScale,
+                      fontWeight: FontWeight.w500,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  }
+                  return ReusableText(
+                    text: username,
+                    size: 22 * autoScale,
+                    fontWeight: FontWeight.w500,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                }),
               ),
             ],
           ),
@@ -79,10 +87,9 @@ class _HomePageState extends State<HomePage> {
               color: AppColors.pBlackColor,
             ),
           ),
-          // Draggable button positioned on the left side with no space
           Positioned(
             top: _isButtonDragged ? _buttonVerticalPosition : 0,
-            left: 0, // Flush against the left edge
+            left: 0,
             child: GestureDetector(
               onTap: () {
                 homeController.navigateToCalculator();
