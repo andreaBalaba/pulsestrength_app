@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/chatbot/screen/chatbot_page.dart';
 import 'package:pulsestrength/features/home/controller/home_controller.dart';
 import 'package:pulsestrength/features/settings/screen/setting_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
@@ -124,9 +125,14 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: AppColors.pBGWhiteColor,
               currentIndex: _currentIndex,
               onTap: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
+                if (index == 2) {
+                  Get.to(() => const ChatBotPage(), preventDuplicates: true);
+                } else {
+                  setState(() {
+                    _currentIndex = index;
+                   // _pageController.jumpToPage(index);
+                  });
+                }
               },
               type: BottomNavigationBarType.fixed,
               items: [
