@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pulsestrength/features/chatbot/screen/chatbot_page.dart';
+import 'package:pulsestrength/features/chatbot/chatbot_page.dart';
 import 'package:pulsestrength/features/home/controller/home_controller.dart';
 import 'package:pulsestrength/features/settings/screen/setting_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';

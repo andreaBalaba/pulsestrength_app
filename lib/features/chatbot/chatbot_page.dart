@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // For jsonEncode and jsonDecode
+import 'dart:convert';
 
-class ChatBotScreen extends StatefulWidget {
-  const ChatBotScreen({super.key});
+class ChatBotPage extends StatefulWidget {
+  const ChatBotPage({super.key});
 
   @override
-  ChatBotScreenState createState() => ChatBotScreenState();
+  ChatBotPageState createState() => ChatBotPageState();
 }
 
-class ChatBotScreenState extends State<ChatBotScreen> {
+class ChatBotPageState extends State<ChatBotPage> {
   final TextEditingController _messageController = TextEditingController();
   final List<Map<String, String>> _messages = [];
   bool _isTyping = false;
