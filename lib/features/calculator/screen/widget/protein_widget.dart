@@ -35,6 +35,7 @@ class ProteinWidget extends StatelessWidget {
                       controller: calculatorController.weightController
                         ..text = calculatorController.weight.value.toString(),
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
                       onChanged: (value) {
                         calculatorController.weight.value = int.tryParse(value) ?? 0; // Keep the weight editable
                       },

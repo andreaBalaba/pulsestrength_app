@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/where_you_workout_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../controller/assessment_controller.dart';
 
 class StopGoalPage extends StatefulWidget {
   const StopGoalPage({super.key});
@@ -19,13 +17,7 @@ class StopGoalPage extends StatefulWidget {
 
 class _StopGoalPageState extends State<StopGoalPage> {
   final AssessmentController controller = Get.put(AssessmentController());
-  final List<String> choices = [
-    "Unhealthy eating habits",
-    "Lack of motivation",
-    "Poor sleep",
-    "Lack of guidance",
-    "Others",
-  ];
+
   final List<String> icons = [
     IconAssets.pUnhealthyIcon,
     IconAssets.pLackMotivationIcon,
@@ -37,9 +29,17 @@ class _StopGoalPageState extends State<StopGoalPage> {
   double autoScale = Get.width / 400;
 
   @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = Get.width;
     final screenHeight = Get.height;
+    final List<String> choices = controller.stopGoalChoices;
+
 
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
@@ -49,9 +49,8 @@ class _StopGoalPageState extends State<StopGoalPage> {
         surfaceTintColor: AppColors.pNoColor,
         toolbarHeight: 60,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute items evenly across the row
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Left content (Leading)
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -64,8 +63,6 @@ class _StopGoalPageState extends State<StopGoalPage> {
                 ),
               ),
             ),
-
-            // Center content (Goal text and progress bar)
             Expanded(
               flex: 4,
               child: Column(
@@ -78,10 +75,10 @@ class _StopGoalPageState extends State<StopGoalPage> {
                   ),
                   const SizedBox(height: 8.0),
                   SizedBox(
-                    width: screenWidth * 0.4, // Adjusted width for progress bar to center
+                    width: screenWidth * 0.4,
                     child: LinearProgressIndicator(
                       value: 0.9,
-                      minHeight: 9.0 * autoScale, // Dynamic height for progress bar
+                      minHeight: 9.0 * autoScale,
                       color: AppColors.pGreenColor,
                       backgroundColor: AppColors.pMGreyColor,
                     ),
@@ -89,21 +86,12 @@ class _StopGoalPageState extends State<StopGoalPage> {
                 ],
               ),
             ),
-
-            // Right content (Skip button)
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
@@ -137,8 +125,9 @@ class _StopGoalPageState extends State<StopGoalPage> {
                 itemCount: choices.length,
                 itemBuilder: (context, index) {
                   return GestureDetector(
-                    onTap: () {
-                      controller.selectedStopGoalIndex(index); // Update selected choice in controller
+                    onTap: () async {
+                      controller.setSelectedStopGoalIndex(index);
+                      await controller.saveAssessmentAnswer("stop_goal", choices[index]);
                     },
                     child: Obx(
                           () => Container(
@@ -193,10 +182,11 @@ class _StopGoalPageState extends State<StopGoalPage> {
               onPressed: controller.selectedStopGoalIndex.value == -1
                   ? null
                   : () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('seenIntro', true);
-
-                Get.to(() => WhereYouWorkoutPage(), transition: Transition.noTransition);
+                  await controller.saveAssessmentAnswer(
+                  "stop_goal",
+                  controller.stopGoalChoices[controller.selectedStopGoalIndex.value],
+                );
+                Get.to(() => const WhereYouWorkoutPage(), transition: Transition.noTransition);
               },
               color: controller.selectedStopGoalIndex.value == -1
                   ? AppColors.pNoColor

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/muscle_gain_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
@@ -17,7 +16,6 @@ class MainGoalPage extends StatefulWidget {
 
 class _MainGoalPageState extends State<MainGoalPage> {
   final AssessmentController controller = Get.put(AssessmentController());
-  final List<String> choices = ["Lose weight", "Build muscle", "Keep fit"];
   final List<String> images = [
     ImageAssets.pLoseWeightPic,
     ImageAssets.pBuildMusclePic,
@@ -27,9 +25,18 @@ class _MainGoalPageState extends State<MainGoalPage> {
   double autoScale = Get.width / 400;
 
   @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData();
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = Get.width;
     final screenHeight = Get.height;
+    final List<String> choices = controller.goalChoices;
+
 
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
@@ -76,19 +83,12 @@ class _MainGoalPageState extends State<MainGoalPage> {
                 ],
               ),
             ),
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => const HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
@@ -131,7 +131,7 @@ class _MainGoalPageState extends State<MainGoalPage> {
                         margin: EdgeInsets.symmetric(vertical: screenHeight * 0.02),
                         decoration: BoxDecoration(
                           color: controller.selectedGoalIndex.value == index
-                              ? AppColors.pGreen38Color // Highlight selected choice
+                              ? AppColors.pGreen38Color
                               : AppColors.pWhiteColor,
                           border: Border.all(
                             color: controller.selectedGoalIndex.value == index
@@ -187,8 +187,12 @@ class _MainGoalPageState extends State<MainGoalPage> {
               text: "Next",
               onPressed: controller.selectedGoalIndex.value == -1
                   ? null
-                  : () {
-                Get.to(() => const MuscleGainPage(), transition: Transition.noTransition);
+                  : () async {
+                    await controller.saveAssessmentAnswer(
+                   "main_goal",
+                    controller.goalChoices[controller.selectedGoalIndex.value],
+                  );
+                  Get.to(() => const MuscleGainPage(), transition: Transition.noTransition);
               },
               color: controller.selectedGoalIndex.value == -1 ? AppColors.pNoColor : AppColors.pGreenColor,
               fontColor: AppColors.pWhiteColor,

@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/flexibility_level_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class ActivityLevelPage extends StatefulWidget {
   const ActivityLevelPage({super.key});
@@ -19,9 +18,40 @@ class ActivityLevelPage extends StatefulWidget {
 class _ActivityLevelPageState extends State<ActivityLevelPage> {
   final AssessmentController controller = Get.put(AssessmentController());
   final double autoScale = Get.width / 400;
-  double sliderValue = 0.0; // Initial slider value
-  String selectedLabel = "Sedentary"; // Default label
-  String description = "I seldom exercise and spend most of my time sitting."; // Default description
+  double sliderValue = 0.0;
+  String selectedLabel = "Sedentary";
+  String description = "I seldom exercise and spend most of my time sitting.";
+  bool isDataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData().then((_) {
+      setState(() {
+        if (controller.selectedActivityLevel.value.isNotEmpty) {
+          selectedLabel = controller.selectedActivityLevel.value;
+          sliderValue = _getSliderValueForLabel(selectedLabel);
+        }
+        isDataLoaded = true;
+      });
+    });
+  }
+
+  double _getSliderValueForLabel(String label) {
+    switch (label) {
+      case "Sedentary":
+        return 0.0;
+      case "Lightly Active":
+        return 0.33;
+      case "Moderately Active":
+        return 0.66;
+      case "Very Active":
+        return 1.0;
+      default:
+        return 0.0;
+    }
+  }
+
 
   String _getCustomLabelForSlider(double value) {
     if (value <= 0.25) return "Sedentary";
@@ -52,12 +82,10 @@ class _ActivityLevelPageState extends State<ActivityLevelPage> {
     return ImageAssets.pVeryActive;
   }
 
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = Get.width;
     final screenHeight = Get.height;
-
 
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
@@ -104,26 +132,20 @@ class _ActivityLevelPageState extends State<ActivityLevelPage> {
                 ],
               ),
             ),
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => const HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
           ],
         ),
       ),
-      body: Column(
+      body: isDataLoaded  // Show content only when data is loaded
+          ? Column(
         children: [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20 * autoScale, vertical: 20 * autoScale),
@@ -143,7 +165,6 @@ class _ActivityLevelPageState extends State<ActivityLevelPage> {
                       TextSpan(text: "activity ", style: TextStyle(color: AppColors.pSOrangeColor)),
                       TextSpan(text: "level ?", style: TextStyle(color: AppColors.pBlackColor)),
                     ],
-
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -166,7 +187,7 @@ class _ActivityLevelPageState extends State<ActivityLevelPage> {
                           child: Image.asset(
                             getImageForSliderValue(sliderValue),
                             fit: BoxFit.contain,
-                              color: AppColors.pSOrangeColor
+                            color: AppColors.pSOrangeColor,
                           ),
                         ),
                       ),
@@ -204,7 +225,8 @@ class _ActivityLevelPageState extends State<ActivityLevelPage> {
             ),
           ),
         ],
-      ),
+      )
+          : const Center(child: CircularProgressIndicator(color: AppColors.pGreenColor,)),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(left: 20.0 * autoScale, right: 20.0 * autoScale, top: 20.0 * autoScale, bottom: 40.0 * autoScale),
         child: SizedBox(
@@ -212,11 +234,10 @@ class _ActivityLevelPageState extends State<ActivityLevelPage> {
           width: double.infinity,
           child: ReusableButton(
             text: "Next",
-            onPressed: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('seenIntro', true);
-              controller.selectedActivityLevel.value = selectedLabel;
+            onPressed: () {
 
+              controller.selectedActivityLevel.value = selectedLabel;
+              controller.saveAssessmentAnswer("activity_level", selectedLabel);
               Get.to(() => const FlexibilityLevelPage(), transition: Transition.noTransition);
 
             },
@@ -252,7 +273,7 @@ class _ActivityLevelPageState extends State<ActivityLevelPage> {
             sliderValue = value;
             selectedLabel = _getCustomLabelForSlider(value);
             description = _getDescriptionForLabel(selectedLabel);
-            controller.selectedActivityLevel.value = selectedLabel; // Update controller value
+            controller.selectedActivityLevel.value = selectedLabel;
           });
         },
       ),

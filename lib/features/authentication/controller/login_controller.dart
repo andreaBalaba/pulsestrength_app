@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pulsestrength/features/authentication/screen/signup_page.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -140,7 +139,6 @@ class LoginController extends GetxController {
         return;
       }
 
-      // Reload Firebase user to check for updated state
       await user.reload();
       if (user.emailVerified) {
         final bool isDataCollected = await _isUserDataCollected(user);
@@ -330,7 +328,7 @@ void _showVerificationSuggestionDialog(User user) {
     ),
     barrierDismissible: false,
   );
-}*/
+}
 
 void _showSignUpDialog() {
   Get.dialog(
@@ -409,4 +407,4 @@ void _showSignUpDialog() {
     ),
     barrierDismissible: false,
   );
-}
+}*/

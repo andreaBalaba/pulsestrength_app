@@ -4,7 +4,6 @@ import 'package:pulsestrength/features/assessment/controller/assessment_controll
 import 'package:pulsestrength/features/assessment/screen/what_target_weight_page.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
 class BmiCalculationPage extends StatefulWidget {
@@ -17,6 +16,8 @@ class BmiCalculationPage extends StatefulWidget {
 class _BmiCalculationPageState extends State<BmiCalculationPage> {
   final AssessmentController controller = Get.put(AssessmentController());
   final double autoScale = Get.width / 400;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -116,20 +117,20 @@ class _BmiCalculationPageState extends State<BmiCalculationPage> {
                       label: "Height (cm)",
                       controller: controller.heightController,
                       focusNode: controller.heightFocus,
-                      textInputAction: TextInputAction.next, // "Next" for Height
+                      textInputAction: TextInputAction.next,
                     ),
                     SizedBox(height: 40 * autoScale),
                     _buildInputRow(
                       label: "Weight (kg)",
                       controller: controller.weightController,
                       focusNode: controller.weightFocus,
-                      textInputAction: TextInputAction.next, // "Next" for Weight
+                      textInputAction: TextInputAction.next,
                     ),
                     SizedBox(height: 40 * autoScale),
                     _buildInputRow(
                       label: "Age",
                       controller: controller.ageController,
-                      textInputAction: TextInputAction.done, // "Done" for Age
+                      textInputAction: TextInputAction.done,
                     ),
                     SizedBox(height: 60 * autoScale),
                     Center(
@@ -155,11 +156,8 @@ class _BmiCalculationPageState extends State<BmiCalculationPage> {
           child: Obx(
                 () => ElevatedButton(
               onPressed: controller.bmi.value != null
-                  ? () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('seenIntro', true);
-
-                Get.to(() => const TargetWeightPage(), transition: Transition.noTransition);
+                  ? () {
+                      Get.to(() => const TargetWeightPage(), transition: Transition.noTransition);
                 }
                   : null,
               style: ElevatedButton.styleFrom(
@@ -203,7 +201,7 @@ class _BmiCalculationPageState extends State<BmiCalculationPage> {
             controller: controller,
             focusNode: focusNode,
             keyboardType: TextInputType.number,
-            textInputAction: textInputAction, // Set the action here
+            textInputAction: textInputAction,
             cursorColor: AppColors.pBlackColor,
             decoration: InputDecoration(
               filled: true,

@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/we_make_it_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class TargetWeightPage extends StatefulWidget {
   const TargetWeightPage({super.key});
@@ -19,18 +18,18 @@ class TargetWeightPage extends StatefulWidget {
 class _TargetWeightPageState extends State<TargetWeightPage> {
   final AssessmentController controller = Get.put(AssessmentController());
   late PageController _pageController;
+  bool isPageControllerInitialized = false;
   final double autoScale = Get.width / 400;
   final int minWeight = 30;
 
-  @override
-  void initState() {
-    super.initState();
-    int initialWeight = int.tryParse(controller.weightController.text) ?? 70;
+  Future<void> _initializePageController() async {
+    await controller.loadAssessmentData();  // Load data
+    int initialWeight = controller.targetWeight.value;
     _pageController = PageController(
       viewportFraction: 0.25,
       initialPage: initialWeight - minWeight,
     );
-    controller.targetWeight.value = initialWeight;
+
     controller.calculateWeightChangeFeedback();
 
     _pageController.addListener(() {
@@ -40,7 +39,18 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
       });
       controller.calculateWeightChangeFeedback();
     });
+
+    setState(() {
+      isPageControllerInitialized = true;
+    });
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePageController();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -57,47 +67,55 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            IconButton(
-              icon: Icon(Icons.arrow_back_rounded, size: 28 * autoScale, color: AppColors.pBlackColor),
-              onPressed: () {
-                Get.back();
-              },
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ReusableText(
-                  text: "Body data",
-                  size: 20 * autoScale,
-                  fontWeight: FontWeight.bold,
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back_rounded, size: 28 * autoScale, color: AppColors.pBlackColor),
+                  padding: const EdgeInsets.all(8.0),
+                  onPressed: () {
+                    Get.back();
+                  },
                 ),
-                const SizedBox(height: 8.0),
-                SizedBox(
-                  width: screenWidth * 0.4,
-                  child: LinearProgressIndicator(
-                    value: 0.5,
-                    minHeight: 9.0 * autoScale,
-                    color: AppColors.pGreenColor,
-                    backgroundColor: AppColors.pMGreyColor,
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ReusableText(
+                    text: "Body data",
+                    size: 20 * autoScale,
+                    fontWeight: FontWeight.bold,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8.0),
+                  SizedBox(
+                    width: screenWidth * 0.4,
+                    child: LinearProgressIndicator(
+                      value: 0.5,
+                      minHeight: 9.0 * autoScale,
+                      color: AppColors.pGreenColor,
+                      backgroundColor: AppColors.pMGreyColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            TextButton(
-              onPressed: () {
-                Get.offAll(() => HomePage(), transition: Transition.noTransition);
-              },
-              child: ReusableText(
-                text: "Skip",
-                color: AppColors.pGreenColor,
-                fontWeight: FontWeight.w500,
-                size: 14 * autoScale,
+            const Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
+                ),
               ),
             ),
           ],
         ),
       ),
-      body: Padding(
+      body: isPageControllerInitialized
+          ? Padding(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: screenWidth * 0.01),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -135,9 +153,9 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 15), // Reduced spacing
+                      const SizedBox(height: 15),
                       SizedBox(
-                        height: 80, // Reduced height
+                        height: 80,
                         child: Stack(
                           children: [
                             PageView.builder(
@@ -148,9 +166,15 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
                                 return Center(
                                   child: ReusableText(
                                     text: "$weight",
-                                    size: weight == controller.targetWeight.value ? 30 * autoScale : 20 * autoScale, // Reduced text size
-                                    color: weight == controller.targetWeight.value ? AppColors.pBlackColor : AppColors.pGreyColor,
-                                    fontWeight: weight == controller.targetWeight.value ? FontWeight.bold : FontWeight.normal,
+                                    size: weight == controller.targetWeight.value
+                                        ? 30 * autoScale
+                                        : 20 * autoScale,
+                                    color: weight == controller.targetWeight.value
+                                        ? AppColors.pBlackColor
+                                        : AppColors.pGreyColor,
+                                    fontWeight: weight == controller.targetWeight.value
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
                                 );
                               },
@@ -161,17 +185,17 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Container(
-                                    height: 60, // Reduced height
-                                    width: 4, // Reduced width
+                                    height: 60,
+                                    width: 4,
                                     decoration: BoxDecoration(
                                       color: AppColors.pSOrangeColor,
                                       borderRadius: BorderRadius.circular(5),
                                     ),
                                   ),
-                                  const SizedBox(width: 60), // Reduced spacing
+                                  const SizedBox(width: 60),
                                   Container(
-                                    height: 60, // Reduced height
-                                    width: 4, // Reduced width
+                                    height: 60,
+                                    width: 4,
                                     decoration: BoxDecoration(
                                       color: AppColors.pSOrangeColor,
                                       borderRadius: BorderRadius.circular(5),
@@ -187,37 +211,37 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
                       Center(
                         child: ReusableText(
                           text: "Kg",
-                          size: 16 * autoScale, // Reduced font size
+                          size: 16 * autoScale,
                           color: AppColors.pBlackColor,
                         ),
                       ),
-                      const SizedBox(height: 15), // Reduced spacing
+                      const SizedBox(height: 15),
                       Obx(() => Container(
-                        width: screenWidth * 0.75, // Adjusted width
-                        padding: const EdgeInsets.all(12), // Reduced padding
+                        width: screenWidth * 0.75,
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(10), // Reduced border radius
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             ReusableText(
                               text: controller.weightChangeHeader.value,
-                              size: 18 * autoScale, // Reduced font size
+                              size: 18 * autoScale,
                               color: Colors.orange,
                               fontWeight: FontWeight.bold,
                             ),
                             const SizedBox(height: 5),
                             ReusableText(
                               text: controller.weightChangeSemiHeader.value,
-                              size: 14 * autoScale, // Reduced font size
+                              size: 14 * autoScale,
                               fontWeight: FontWeight.w600,
                             ),
                             const SizedBox(height: 5),
                             ReusableText(
                               text: controller.weightChangeMessage.value,
-                              size: 14 * autoScale, // Reduced font size
+                              size: 14 * autoScale,
                               color: AppColors.pDarkGreyColor,
                             ),
                           ],
@@ -230,16 +254,16 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
             ),
           ],
         ),
-      ),
+      )
+          : const Center(child: CircularProgressIndicator(color: AppColors.pGreenColor,)),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(left: 20.0 * autoScale, right: 20.0 * autoScale, top: 10.0 * autoScale, bottom: 40.0 * autoScale),
         child: SizedBox(
           height: screenHeight * 0.065,
           child: ReusableButton(
             text: "Next",
-            onPressed: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('seenIntro', true);
+            onPressed: () {
+              controller.saveAssessmentDataToDatabase();
               Get.to(() => const WeMakeItPage(), transition: Transition.noTransition);
             },
             color: AppColors.pGreenColor,

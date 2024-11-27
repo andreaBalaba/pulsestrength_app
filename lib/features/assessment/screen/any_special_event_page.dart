@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/feel_good_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
 class AnyEventPage extends StatefulWidget {
@@ -19,14 +17,6 @@ class AnyEventPage extends StatefulWidget {
 
 class _AnyEventPageState extends State<AnyEventPage> {
   final AssessmentController controller = Get.put(AssessmentController());
-
-  final List<String> choices = [
-    "Sport event",
-    "Travel",
-    "Taking photo",
-    "Vacation",
-    "THE BIG DAY",
-  ];
 
   final List<String> icons = [
     IconAssets.pSportIcon,
@@ -40,9 +30,17 @@ class _AnyEventPageState extends State<AnyEventPage> {
   double autoScale = Get.width / 400;
 
   @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = Get.width;
     final screenHeight = Get.height;
+    final List<String> choices = controller.eventChoices;
+
 
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
@@ -52,9 +50,8 @@ class _AnyEventPageState extends State<AnyEventPage> {
         surfaceTintColor: AppColors.pNoColor,
         toolbarHeight: 60,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute items evenly across the row
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Left content (Leading)
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -68,7 +65,6 @@ class _AnyEventPageState extends State<AnyEventPage> {
               ),
             ),
 
-            // Center content (Goal text and progress bar)
             Expanded(
               flex: 4,
               child: Column(
@@ -81,10 +77,10 @@ class _AnyEventPageState extends State<AnyEventPage> {
                   ),
                   const SizedBox(height: 8.0),
                   SizedBox(
-                    width: screenWidth * 0.4, // Adjusted width for progress bar to center
+                    width: screenWidth * 0.4,
                     child: LinearProgressIndicator(
                       value: 0.25,
-                      minHeight: 9.0 * autoScale, // Dynamic height for progress bar
+                      minHeight: 9.0 * autoScale,
                       color: AppColors.pGreenColor,
                       backgroundColor: AppColors.pMGreyColor,
                     ),
@@ -93,20 +89,12 @@ class _AnyEventPageState extends State<AnyEventPage> {
               ),
             ),
 
-            // Right content (Skip button)
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
@@ -126,7 +114,7 @@ class _AnyEventPageState extends State<AnyEventPage> {
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                 ),
-                children: [
+                children: const [
                   TextSpan(text: "Any special event ", style: TextStyle(color: AppColors.pBlackColor)),
                   TextSpan(text: "boosting ", style: TextStyle(color: AppColors.pSOrangeColor)),
                   TextSpan(text: "your ", style: TextStyle(color: AppColors.pBlackColor)),
@@ -142,8 +130,9 @@ class _AnyEventPageState extends State<AnyEventPage> {
                 itemCount: choices.length,
                 itemBuilder: (context, index) {
                   return GestureDetector(
-                    onTap: () {
-                      controller.selectedAnyEventsIndex(index); // Update selected choice in controller
+                    onTap: () async {
+                      controller.setSelectedAnyEventsIndex(index);
+                      await controller.saveAssessmentAnswer("any_event", choices[index]);
                     },
                     child: Obx(
                           () => Container(
@@ -198,10 +187,11 @@ class _AnyEventPageState extends State<AnyEventPage> {
               onPressed: controller.selectedAnyEventsIndex.value == -1
                   ? null
                   : () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('seenIntro', true);
-
-                Get.to(() => FeelGoodPage(), transition: Transition.noTransition);
+                  await controller.saveAssessmentAnswer(
+                  "any_event",
+                  controller.eventChoices[controller.selectedAnyEventsIndex.value],
+                );
+                Get.to(() => const FeelGoodPage(), transition: Transition.noTransition);
               },
               color: controller.selectedAnyEventsIndex.value == -1
                   ? AppColors.pNoColor

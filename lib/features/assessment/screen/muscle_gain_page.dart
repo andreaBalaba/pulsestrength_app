@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/what_focus_area_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
 class MuscleGainPage extends StatefulWidget {
@@ -36,7 +34,7 @@ class _MuscleGainPageState extends State<MuscleGainPage> {
         surfaceTintColor: AppColors.pNoColor,
         toolbarHeight: 60,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute items evenly across the row
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             // Left content (Leading)
             Expanded(
@@ -52,7 +50,6 @@ class _MuscleGainPageState extends State<MuscleGainPage> {
               ),
             ),
 
-            // Center content (Goal text and progress bar)
             Expanded(
               flex: 4,
               child: Column(
@@ -77,20 +74,12 @@ class _MuscleGainPageState extends State<MuscleGainPage> {
               ),
             ),
 
-            // Right content (Skip button)
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
@@ -104,7 +93,7 @@ class _MuscleGainPageState extends State<MuscleGainPage> {
               Expanded(
                 child: Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -130,7 +119,7 @@ class _MuscleGainPageState extends State<MuscleGainPage> {
                               fontWeight: FontWeight.w700,
                               letterSpacing: 1,
                             ),
-                            children: [
+                            children: const [
                               TextSpan(text: "Muscle gain ", style: TextStyle(color: AppColors.pSOrangeColor)),
                               TextSpan(text: "at ", style: TextStyle(color: AppColors.pBlackColor)),
                               TextSpan(text: "smart rhythm ", style: TextStyle(color: AppColors.pSOrangeColor)),
@@ -163,13 +152,8 @@ class _MuscleGainPageState extends State<MuscleGainPage> {
           width: double.infinity,
           child: ReusableButton(
             text: "Next",
-            onPressed: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('seenIntro', true);
-
+            onPressed: () {
               Get.to(() => const FocusAreaPage(), transition: Transition.noTransition);
-
-
             },
             color: AppColors.pGreenColor,
             fontColor: AppColors.pWhiteColor,

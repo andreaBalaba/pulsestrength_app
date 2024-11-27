@@ -20,53 +20,62 @@ class _LogInPageState extends State<LogInPage> {
   final LoginController controller = Get.put(LoginController(), permanent: true);
   double get autoScale => Get.width / 360;
   bool _isPasswordVisible = false;
-
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pWhiteColor,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20 * autoScale),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 50 * autoScale),
-                _buildLogo(),
-                SizedBox(height: 50 * autoScale),
-                _buildTextField(
-                  hintText: 'Email',
-                  isPasswordField: false,
-                  controller: controller.emailController,
+      body: Stack(
+        children: [
+          // Main content
+          Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20 * autoScale),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 50 * autoScale),
+                    _buildLogo(),
+                    SizedBox(height: 50 * autoScale),
+                    _buildTextField(
+                      hintText: 'Email',
+                      isPasswordField: false,
+                      controller: controller.emailController,
+                    ),
+                    SizedBox(height: 25 * autoScale),
+                    _buildTextField(
+                      hintText: 'Password',
+                      isPasswordField: true,
+                      controller: controller.passwordController,
+                    ),
+                    SizedBox(height: 20 * autoScale),
+                    _buildContinueDivider(),
+                    SizedBox(height: 20 * autoScale),
+                    _buildGoogleButton(),
+                    SizedBox(height: 30 * autoScale),
+                    _buildSignUpText(),
+                    SizedBox(height: 30 * autoScale),
+                    _buildLoginButton(),
+                    SizedBox(height: 30 * autoScale),
+                  ],
                 ),
-                SizedBox(height: 25 * autoScale),
-                _buildTextField(
-                  hintText: 'Password',
-                  isPasswordField: true,
-                  controller: controller.passwordController,
-                ),
-                SizedBox(height: 20 * autoScale),
-                _buildContinueDivider(),
-                SizedBox(height: 20 * autoScale),
-                _buildGoogleButton(),
-                SizedBox(height: 30 * autoScale),
-                _buildSignUpText(),
-                SizedBox(height: 30 * autoScale),
-
-                // Login button with loading indicator
-                Obx(() {
-                  return controller.isLoading.value
-                      ? const CircularProgressIndicator(color: AppColors.pGreenColor,)
-                      : _buildLoginButton();
-                }),
-
-                SizedBox(height: 30 * autoScale),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // Loading overlay
+          if (_isLoading)
+            Container(
+              color: Colors.black45,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.pGreenColor,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -126,9 +135,9 @@ class _LogInPageState extends State<LogInPage> {
           contentPadding: EdgeInsets.all(15 * autoScale),
           hintText: hintText,
           hintStyle: TextStyle(
-              color: AppColors.pDarkGreyColor,
-              fontFamily: 'Poppins',
-              fontSize: 14 * autoScale
+            color: AppColors.pDarkGreyColor,
+            fontFamily: 'Poppins',
+            fontSize: 14 * autoScale,
           ),
           suffixIcon: isPasswordField
               ? IconButton(
@@ -151,12 +160,7 @@ class _LogInPageState extends State<LogInPage> {
   Widget _buildContinueDivider() {
     return Row(
       children: [
-        const Expanded(
-            child: Divider(
-                thickness: 1,
-                color: AppColors.pBlackColor
-            )
-        ),
+        const Expanded(child: Divider(thickness: 1, color: AppColors.pBlackColor)),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 8 * autoScale),
           child: ReusableText(
@@ -164,12 +168,7 @@ class _LogInPageState extends State<LogInPage> {
             size: 14 * autoScale,
           ),
         ),
-        const Expanded(
-            child: Divider(
-                thickness: 1,
-                color: AppColors.pBlackColor
-            )
-        ),
+        const Expanded(child: Divider(thickness: 1, color: AppColors.pBlackColor)),
       ],
     );
   }
@@ -180,9 +179,11 @@ class _LogInPageState extends State<LogInPage> {
       height: 50 * autoScale,
       child: ElevatedButton.icon(
         onPressed: () async {
+          setState(() => _isLoading = true); // Show loading overlay
           await googlecontroller.signInOrSignUpWithGoogle(onPrompt: (message) {
             Get.snackbar("Google Auth", message);
           });
+          setState(() => _isLoading = false); // Hide loading overlay
         },
         icon: Image.asset(
           IconAssets.pGoogleIcon,
@@ -210,9 +211,9 @@ class _LogInPageState extends State<LogInPage> {
       text: TextSpan(
         text: "Don’t have an account yet? ",
         style: TextStyle(
-            color: AppColors.pDarkGreyColor,
-            fontSize: 12 * autoScale,
-            fontFamily: 'Poppins'
+          color: AppColors.pDarkGreyColor,
+          fontSize: 12 * autoScale,
+          fontFamily: 'Poppins',
         ),
         children: [
           TextSpan(
@@ -239,12 +240,15 @@ class _LogInPageState extends State<LogInPage> {
       width: 150 * autoScale,
       height: 50 * autoScale,
       child: ElevatedButton(
-        onPressed: controller.login,
+        onPressed: () async {
+          setState(() => _isLoading = true); // Show loading overlay
+          await controller.login();
+          setState(() => _isLoading = false); // Hide loading overlay
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.pTFColor,
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18 * autoScale)
-          ),
+              borderRadius: BorderRadius.circular(18 * autoScale)),
         ),
         child: ReusableText(
           text: "Log in",

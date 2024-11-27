@@ -6,7 +6,6 @@ import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class IdentifySexPage extends StatefulWidget {
   const IdentifySexPage({super.key});
@@ -21,10 +20,13 @@ class _IdentifySexPageState extends State<IdentifySexPage> {
   final List<String> images = [ImageAssets.pMenGenderPic, ImageAssets.pWomenGenderPic];
   double autoScale = Get.width / 400;
 
-  Future<void> saveGenderPreference(int index) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('selectedGender', choices[index]);
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +43,15 @@ class _IdentifySexPageState extends State<IdentifySexPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Expanded(
+            Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: EdgeInsets.only(left: 16.0),
-                  child: SizedBox(height: 20.0),
+                child: IconButton(
+                  icon: Icon(Icons.arrow_back_rounded, size: 28 * autoScale, color: AppColors.pBlackColor),
+                  padding: const EdgeInsets.all(8.0),
+                  onPressed: () {
+                    Get.back();
+                  },
                 ),
               ),
             ),
@@ -82,6 +87,23 @@ class _IdentifySexPageState extends State<IdentifySexPage> {
                 ),
               ),
             ),
+            /*Expanded(
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () async {
+                    onSkipGender();
+                    Get.to(() => const MeasureItRightPage(), transition: Transition.noTransition);
+                  },
+                  child: ReusableText(
+                    text: "Skip",
+                    color: AppColors.pGreenColor,
+                    fontWeight: FontWeight.w500,
+                    size: 14 * autoScale,
+                  ),
+                ),
+              ),
+            ),*/
           ],
         ),
       ),
@@ -121,11 +143,8 @@ class _IdentifySexPageState extends State<IdentifySexPage> {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () async {
-                      setState(() {
-                        controller.setGender(index);
-                        controller.selectedIdentifySexIndex(index);
-                      });
-                      await saveGenderPreference(index); // Save preference on selection
+                      controller.setGender(index);
+                      controller.selectedIdentifySexIndex.value = index;
                     },
                     child: Obx(
                           () => AnimatedScale(
@@ -175,10 +194,7 @@ class _IdentifySexPageState extends State<IdentifySexPage> {
               text: "Next",
               onPressed: controller.selectedIdentifySexIndex.value == -1
                   ? null
-                  : () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('seenIntro', true);
-
+                  : () {
                 Get.to(() => const MeasureItRightPage(), transition: Transition.noTransition);
               },
               color: controller.selectedIdentifySexIndex.value == -1

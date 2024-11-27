@@ -29,6 +29,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: AppColors.pBGWhiteColor,
         elevation: 0,
         surfaceTintColor: AppColors.pNoColor,

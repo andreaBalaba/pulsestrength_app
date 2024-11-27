@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/achievable_prediction.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class BodyShapePage extends StatefulWidget {
   const BodyShapePage({super.key});
@@ -21,9 +20,39 @@ class _BodyShapePageState extends State<BodyShapePage> {
   final double autoScale = Get.width / 400;
   double sliderValue = 0.0;
   String selectedLabel = "Slim Body";
+  bool isDataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData().then((_) {
+      setState(() {
+        if (controller.selectedBodyShape.value.isNotEmpty) {
+          selectedLabel = controller.selectedBodyShape.value;
+          sliderValue = _getSliderValueForLabel(selectedLabel);
+        }
+        isDataLoaded = true;
+      });
+    });
+  }
+
+  double _getSliderValueForLabel(String label) {
+    switch (label) {
+      case "Slim Body":
+        return 0.0;
+      case "Athletic Body":
+        return 0.33;
+      case "Muscular Body":
+        return 0.66;
+      case "Bulky Body":
+        return 1.0;
+      default:
+        return 0.0;
+    }
+  }
 
   String getImageForSliderValue(double value) {
-    bool isMale = controller.gender.value == "Male"; // Dynamically check gender
+    bool isMale = controller.gender.value == "Male";
     if (isMale) {
       if (value <= 0.25) return ImageAssets.pSlimMalePic;
       if (value <= 0.5) return ImageAssets.pAthleticMalePic;
@@ -43,6 +72,7 @@ class _BodyShapePageState extends State<BodyShapePage> {
     if (value <= 0.75) return "Muscular Body";
     return "Bulky Body";
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -94,26 +124,20 @@ class _BodyShapePageState extends State<BodyShapePage> {
                 ],
               ),
             ),
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => const HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
           ],
         ),
       ),
-      body: Column(
+      body: isDataLoaded  // Only show the body after data is loaded
+          ? Column(
         children: [
           Padding(
             padding: EdgeInsets.only(left: 20, right: 20, top: screenWidth * 0.01 ),
@@ -193,7 +217,8 @@ class _BodyShapePageState extends State<BodyShapePage> {
             ),
           ),
         ],
-      ),
+      )
+          : const Center(child: CircularProgressIndicator(color: AppColors.pGreenColor,)),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(left: 20.0 * autoScale, right: 20.0 * autoScale, top: 20.0 * autoScale, bottom: 40.0 * autoScale),
         child: SizedBox(
@@ -201,11 +226,9 @@ class _BodyShapePageState extends State<BodyShapePage> {
           width: double.infinity,
           child: ReusableButton(
             text: "Next",
-            onPressed: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('seenIntro', true);
+            onPressed: () {
               controller.selectedBodyShape.value = selectedLabel;
-
+              controller.saveAssessmentAnswer("body_shape", selectedLabel);
               Get.to(() => const AchievablePredictionPage(), transition: Transition.noTransition);
 
             },
@@ -240,7 +263,7 @@ class _BodyShapePageState extends State<BodyShapePage> {
           setState(() {
             sliderValue = value;
             selectedLabel = getCustomLabelForSlider(value);
-            controller.selectedBodyShape.value = selectedLabel; // Update controller value
+            controller.selectedBodyShape.value = selectedLabel;
           });
         },
       ),
@@ -248,7 +271,6 @@ class _BodyShapePageState extends State<BodyShapePage> {
   }
 }
 
-// Custom slider thumb shape
 class CustomSliderThumb extends SliderComponentShape {
   final double thumbRadius;
   final double borderWidth;
@@ -284,7 +306,6 @@ class CustomSliderThumb extends SliderComponentShape {
   }
 }
 
-// Custom track shape for slider gradient
 class GradientTrackShape extends SliderTrackShape {
   final double trackPadding;
 
@@ -313,7 +334,7 @@ class GradientTrackShape extends SliderTrackShape {
         required Animation<double> enableAnimation,
         required TextDirection textDirection,
         required Offset thumbCenter,
-        Offset? secondaryOffset, // Include secondaryOffset to match the method signature
+        Offset? secondaryOffset,
         bool isEnabled = false,
         bool isDiscrete = false,
       }) {
@@ -333,12 +354,12 @@ class GradientTrackShape extends SliderTrackShape {
     final inactivePaint = Paint()..color = sliderTheme.inactiveTrackColor ?? AppColors.pGreyColor;
 
     context.canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTRB(trackRect.left, trackRect.top, thumbCenter.dx, trackRect.bottom), Radius.circular(10)),
+      RRect.fromRectAndRadius(Rect.fromLTRB(trackRect.left, trackRect.top, thumbCenter.dx, trackRect.bottom), const Radius.circular(10)),
       activePaint,
     );
 
     context.canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTRB(thumbCenter.dx, trackRect.top, trackRect.right, trackRect.bottom), Radius.circular(10)),
+      RRect.fromRectAndRadius(Rect.fromLTRB(thumbCenter.dx, trackRect.top, trackRect.right, trackRect.bottom), const Radius.circular(10)),
       inactivePaint,
     );
   }

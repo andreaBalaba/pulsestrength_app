@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/summary_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
 class AnyDiscomfortPage extends StatefulWidget {
@@ -19,13 +17,6 @@ class AnyDiscomfortPage extends StatefulWidget {
 
 class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
   final AssessmentController controller = Get.put(AssessmentController());
-  final List<String> choices = [
-    "None",
-    "Back injury",
-    "Arm injury",
-    "Knee injury",
-    "Cardiomyopathy",
-  ];
 
 
   final List<String> icons = [
@@ -39,9 +30,17 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
   double autoScale = Get.width / 400;
 
   @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = Get.width;
     final screenHeight = Get.height;
+    final List<String> choices = controller.discomfortChoices;
+
 
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
@@ -53,7 +52,6 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Left content (Leading)
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -66,8 +64,6 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
                 ),
               ),
             ),
-
-            // Center content (Goal text and progress bar)
             Expanded(
               flex: 4,
               child: Column(
@@ -91,21 +87,12 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
                 ],
               ),
             ),
-
-            // Right content (Skip button)
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => const HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
@@ -141,8 +128,9 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
                 itemCount: choices.length,
                 itemBuilder: (context, index) {
                   return GestureDetector(
-                    onTap: () {
-                      controller.selectedAnyDiscomfortIndex(index); // Update selected choice in controller
+                    onTap: () async {
+                      controller.setSelectedAnyDiscomfortIndex(index);
+                      await controller.saveAssessmentAnswer("discomfort", choices[index]);
                     },
                     child: Obx(
                           () => Container(
@@ -197,9 +185,11 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
               onPressed: controller.selectedAnyDiscomfortIndex.value == -1
                   ? null
                   : () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('seenIntro', true);
-
+                  await controller.saveAssessmentAnswer(
+                  "discomfort",
+                  controller.discomfortChoices[controller.selectedAnyDiscomfortIndex.value],
+                  );
+                  await controller.markDataAsCollected();
                 Get.offAll(() => const SummaryPage(), transition: Transition.noTransition);
               },
               color: controller.selectedAnyDiscomfortIndex.value == -1

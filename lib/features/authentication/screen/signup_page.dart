@@ -21,89 +21,99 @@ class _SignUpPageState extends State<SignUpPage> {
 
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
-
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20 * autoScale),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 50 * autoScale),
-                ReusableText(
-                  text: "SIGN UP",
-                  size: 28 * autoScale,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.pDarkGreyColor,
+      body: Stack(
+        children: [
+          // Main content
+          Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20 * autoScale),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 50 * autoScale),
+                    ReusableText(
+                      text: "SIGN UP",
+                      size: 28 * autoScale,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.pDarkGreyColor,
+                    ),
+                    const SizedBox(height: 30),
+                    _buildTextField("Name", controller.usernameController, false, false, () {}),
+                    SizedBox(height: 25 * autoScale),
+                    _buildTextField("Email Address", controller.emailController, false, false, () {}),
+                    SizedBox(height: 25 * autoScale),
+                    _buildTextField("Password", controller.passwordController, true, isPasswordVisible, () {
+                      setState(() {
+                        isPasswordVisible = !isPasswordVisible;
+                      });
+                    }),
+                    SizedBox(height: 25 * autoScale),
+                    _buildTextField("Confirm Password", controller.confirmPasswordController, true, isConfirmPasswordVisible, () {
+                      setState(() {
+                        isConfirmPasswordVisible = !isConfirmPasswordVisible;
+                      });
+                    }),
+                    Obx(() {
+                      return Column(
+                        children: [
+                          if (!controller.passwordsMatch.value)
+                            Padding(
+                              padding: EdgeInsets.only(top: 8 * autoScale),
+                              child: ReusableText(
+                                text: 'Passwords do not match',
+                                color: AppColors.pSOrangeColor,
+                                size: 12 * autoScale,
+                              ),
+                            )
+                          else if (controller.confirmPasswordController.text.isNotEmpty)
+                            Padding(
+                              padding: EdgeInsets.only(top: 8 * autoScale),
+                              child: ReusableText(
+                                text: 'Passwords match',
+                                color: AppColors.pGreenColor,
+                                size: 12 * autoScale,
+                              ),
+                            ),
+                        ],
+                      );
+                    }),
+                    SizedBox(height: 20 * autoScale),
+                    _buildDivider("Continue with"),
+                    SizedBox(height: 20 * autoScale),
+                    _buildGoogleButton(),
+                    SizedBox(height: 25 * autoScale),
+                    _buildTermsCheckbox(),
+                    SizedBox(height: 30 * autoScale),
+                    _buildLoginText(),
+                    SizedBox(height: 30 * autoScale),
+
+                    // Show loading indicator or Sign Up button
+                    _buildSignUpButton(),
+                    SizedBox(height: 40 * autoScale),
+                  ],
                 ),
-                const SizedBox(height: 30),
-                _buildTextField("Name", controller.usernameController, false, false, () {}),
-                SizedBox(height: 25 * autoScale),
-                _buildTextField("Email Address", controller.emailController, false, false, () {}),
-                SizedBox(height: 25 * autoScale),
-                _buildTextField("Password", controller.passwordController, true, isPasswordVisible, () {
-                  setState(() {
-                    isPasswordVisible = !isPasswordVisible;
-                  });
-                }),
-                SizedBox(height: 25 * autoScale),
-                _buildTextField("Confirm Password", controller.confirmPasswordController, true, isConfirmPasswordVisible, () {
-                  setState(() {
-                    isConfirmPasswordVisible = !isConfirmPasswordVisible;
-                  });
-                }),
-
-
-                Obx(() {
-                  return Column(
-                    children: [
-                      if (!controller.passwordsMatch.value)
-                        Padding(
-                          padding: EdgeInsets.only(top: 8 * autoScale),
-                          child: ReusableText(
-                            text: 'Passwords do not match',
-                            color: AppColors.pSOrangeColor,
-                            size: 12 * autoScale,
-                          ),
-                        )
-                      else if (controller.confirmPasswordController.text.isNotEmpty)
-                        Padding(
-                          padding: EdgeInsets.only(top: 8 * autoScale),
-                          child: ReusableText(
-                            text: 'Passwords match',
-                            color: AppColors.pGreenColor,
-                            size: 12 * autoScale,
-                          ),
-                        ),
-                    ],
-                  );
-                }),
-                SizedBox(height: 20 * autoScale),
-                _buildDivider("Continue with"),
-                SizedBox(height: 20 * autoScale),
-                _buildGoogleButton(),
-                SizedBox(height: 25 * autoScale),
-                _buildTermsCheckbox(),
-                SizedBox(height: 30 * autoScale),
-                _buildLoginText(),
-                SizedBox(height: 30 * autoScale),
-
-                // Show loading indicator or Sign Up button
-                Obx(() {
-                  return controller.isLoading.value
-                      ? const CircularProgressIndicator(color: AppColors.pGreenColor)
-                      : _buildSignUpButton();
-                }),
-                SizedBox(height: 40 * autoScale),
-              ],
+              ),
             ),
           ),
-        ),
+
+          // Loading overlay
+          if (isLoading)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(
+                  color: AppColors.pGreenColor,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -153,7 +163,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-
   Widget _buildDivider(String text) {
     return Row(
       children: [
@@ -173,9 +182,20 @@ class _SignUpPageState extends State<SignUpPage> {
       height: 50 * autoScale,
       child: ElevatedButton.icon(
         onPressed: () async {
+          if (!controller.isTermsAccepted.value) {
+            Get.snackbar(
+              "Terms and Conditions",
+              "You must accept the Terms and Conditions and Privacy Policy before signing up.",
+              backgroundColor: AppColors.pSOrangeColor,
+              colorText: Colors.white,
+            );
+            return;
+          }
+          setState(() => isLoading = true);
           await controller.signInOrSignUpWithGoogle(onPrompt: (message) {
             Get.snackbar("Google Auth", message);
           });
+          setState(() => isLoading = false);
         },
         icon: Image.asset(
           IconAssets.pGoogleIcon,
@@ -197,6 +217,7 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
     );
   }
+
 
   Widget _buildTermsCheckbox() {
     return Row(
@@ -273,10 +294,8 @@ class _SignUpPageState extends State<SignUpPage> {
             ),
             recognizer: TapGestureRecognizer()
               ..onTap = () {
-
                 final loginController = Get.find<LoginController>();
                 loginController.clearForm();
-
                 Get.to(() => const LogInPage());
               },
           ),
@@ -290,7 +309,11 @@ class _SignUpPageState extends State<SignUpPage> {
       width: 150 * autoScale,
       height: 50 * autoScale,
       child: ElevatedButton(
-        onPressed: controller.signUp,
+        onPressed: () async {
+          setState(() => isLoading = true); // Show loading overlay
+          await controller.signUp();
+          setState(() => isLoading = false); // Hide loading overlay
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.pTFColor,
           shape: RoundedRectangleBorder(

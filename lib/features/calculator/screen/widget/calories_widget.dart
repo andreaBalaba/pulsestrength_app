@@ -30,6 +30,7 @@ class CaloriesWidget extends StatelessWidget {
                     child: TextField(
                       controller: calculatorController.CalageController,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
                       onChanged: (value) {
                         calculatorController.age.value = int.tryParse(value) ?? 0;
                       },
@@ -78,8 +79,9 @@ class CaloriesWidget extends StatelessWidget {
                     child: TextField(
                       controller: calculatorController.CalweightController,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
                       onChanged: (value) {
-                        calculatorController.weight.value = int.tryParse(value) ?? 0; // Updated to handle as int
+                        calculatorController.weight.value = int.tryParse(value) ?? 0;
                       },
                       decoration: InputDecoration(
                         hintText: 'Weight',
@@ -107,8 +109,9 @@ class CaloriesWidget extends StatelessWidget {
                     child: TextField(
                       controller: calculatorController.CalheightController,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
                       onChanged: (value) {
-                        calculatorController.height.value = int.tryParse(value) ?? 0; // Updated to handle as int
+                        calculatorController.height.value = int.tryParse(value) ?? 0;
                       },
                       decoration: InputDecoration(
                         hintText: 'Height',

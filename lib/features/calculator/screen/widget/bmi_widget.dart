@@ -37,6 +37,7 @@ class BmiWidget extends StatelessWidget {
                     child: TextField(
                       controller: calculatorController.ageController,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
                       onChanged: (value) {
                         calculatorController.age.value =
                             int.tryParse(value) ?? 0;
@@ -86,6 +87,7 @@ class BmiWidget extends StatelessWidget {
                     child: TextField(
                       controller: calculatorController.weightController,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
                       onChanged: (value) {
                         calculatorController.weight.value =
                             int.tryParse(value) ?? 0; // Updated to parse as int
@@ -117,6 +119,7 @@ class BmiWidget extends StatelessWidget {
                     child: TextField(
                       controller: calculatorController.heightController,
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
                       onChanged: (value) {
                         calculatorController.height.value =
                             int.tryParse(value) ?? 0; // Updated to parse as int

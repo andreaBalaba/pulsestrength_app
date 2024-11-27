@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/what_goal_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
@@ -18,13 +17,7 @@ class MotivationPage extends StatefulWidget {
 
 class _MotivationPageState extends State<MotivationPage> {
   final AssessmentController controller = Get.put(AssessmentController());
-  final List<String> choices = [
-    "Feel confident",
-    "Release stress",
-    "Improve health",
-    "Boost energy",
-    "Get shaped"
-  ];
+
   final List<String> icons = [
     IconAssets.pConfidentIcon,
     IconAssets.pReleaseStressIcon,
@@ -36,9 +29,17 @@ class _MotivationPageState extends State<MotivationPage> {
   double autoScale = Get.width / 400;
 
   @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData();
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = Get.width;
     final screenHeight = Get.height;
+    final List<String> choices = controller.motivationChoices;
 
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
@@ -82,19 +83,12 @@ class _MotivationPageState extends State<MotivationPage> {
                 ],
               ),
             ),
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => const HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
@@ -129,7 +123,7 @@ class _MotivationPageState extends State<MotivationPage> {
                 itemBuilder: (context, index) {
                   return GestureDetector(
                     onTap: () async {
-                      controller.setSelectedMotivationIndex(index); // Update the selected index
+                      controller.setSelectedMotivationIndex(index);
                       await controller.saveAssessmentAnswer("motivation", choices[index]);
                     },
                     child: Obx(
@@ -189,9 +183,13 @@ class _MotivationPageState extends State<MotivationPage> {
               text: "Next",
               onPressed: controller.selectedMotivationIndex.value == -1
                   ? null
-                  : () {
-                Get.to(() => const MainGoalPage(), transition: Transition.noTransition);
-              },
+                  : () async {
+                    await controller.saveAssessmentAnswer(
+                    "motivation",
+                    controller.motivationChoices[controller.selectedMotivationIndex.value],
+                  );
+                      Get.to(() => const MainGoalPage(), transition: Transition.noTransition);
+                  },
               color: controller.selectedMotivationIndex.value == -1
                   ? AppColors.pNoColor
                   : AppColors.pGreenColor,

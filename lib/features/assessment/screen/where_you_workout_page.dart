@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/any_discomfort_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 
 class WhereYouWorkoutPage extends StatefulWidget {
@@ -19,12 +17,6 @@ class WhereYouWorkoutPage extends StatefulWidget {
 
 class _WhereYouWorkoutPageState extends State<WhereYouWorkoutPage> {
   final AssessmentController controller = Get.put(AssessmentController());
-  final List<String> choices = [
-    "Home",
-    "Bed",
-    "Yoga mat",
-    "Gym",
-  ];
 
   final List<String> icons = [
     IconAssets.pHouseIcon,
@@ -36,9 +28,17 @@ class _WhereYouWorkoutPageState extends State<WhereYouWorkoutPage> {
   double autoScale = Get.width / 400;
 
   @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final screenWidth = Get.width;
     final screenHeight = Get.height;
+    final List<String> choices = controller.whereDoExerciseChoices;
+
 
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
@@ -48,9 +48,8 @@ class _WhereYouWorkoutPageState extends State<WhereYouWorkoutPage> {
         surfaceTintColor: AppColors.pNoColor,
         toolbarHeight: 60,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute items evenly across the row
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Left content (Leading)
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -64,7 +63,6 @@ class _WhereYouWorkoutPageState extends State<WhereYouWorkoutPage> {
               ),
             ),
 
-            // Center content (Goal text and progress bar)
             Expanded(
               flex: 4,
               child: Column(
@@ -77,10 +75,10 @@ class _WhereYouWorkoutPageState extends State<WhereYouWorkoutPage> {
                   ),
                   const SizedBox(height: 8.0),
                   SizedBox(
-                    width: screenWidth * 0.4, // Adjusted width for progress bar to center
+                    width: screenWidth * 0.4,
                     child: LinearProgressIndicator(
                       value: 0.95,
-                      minHeight: 9.0 * autoScale, // Dynamic height for progress bar
+                      minHeight: 9.0 * autoScale,
                       color: AppColors.pGreenColor,
                       backgroundColor: AppColors.pMGreyColor,
                     ),
@@ -89,20 +87,12 @@ class _WhereYouWorkoutPageState extends State<WhereYouWorkoutPage> {
               ),
             ),
 
-            // Right content (Skip button)
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
@@ -136,8 +126,9 @@ class _WhereYouWorkoutPageState extends State<WhereYouWorkoutPage> {
                 itemCount: choices.length,
                 itemBuilder: (context, index) {
                   return GestureDetector(
-                    onTap: () {
-                      controller.selectedWhereYouWorkoutIndex(index); // Update selected choice in controller
+                    onTap: () async {
+                      controller.setSelectedWhereYouWorkoutIndex(index);
+                      await controller.saveAssessmentAnswer("where_do_exercise", choices[index]);
                     },
                     child: Obx(
                           () => Container(
@@ -192,10 +183,11 @@ class _WhereYouWorkoutPageState extends State<WhereYouWorkoutPage> {
               onPressed: controller.selectedWhereYouWorkoutIndex.value == -1
                   ? null
                   : () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.setBool('seenIntro', true);
-
-                Get.to(() => AnyDiscomfortPage(), transition: Transition.noTransition);
+                  await controller.saveAssessmentAnswer(
+                  "where_do_exercise",
+                  controller.whereDoExerciseChoices[controller.selectedWhereYouWorkoutIndex.value],
+                );
+                Get.to(() => const AnyDiscomfortPage(), transition: Transition.noTransition);
               },
               color: controller.selectedWhereYouWorkoutIndex.value == -1
                   ? AppColors.pNoColor

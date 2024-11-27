@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/aerobic_level_page.dart';
-import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 
 class FlexibilityLevelPage extends StatefulWidget {
   const FlexibilityLevelPage({super.key});
@@ -19,9 +18,37 @@ class FlexibilityLevelPage extends StatefulWidget {
 class _FlexibilityLevelPageState extends State<FlexibilityLevelPage> {
   final AssessmentController controller = Get.put(AssessmentController());
   final double autoScale = Get.width / 400;
-  double sliderValue = 0.0; // Initial slider value
-  String selectedLabel = "It’s OK !"; // Default label
-  String description = "75% of our users face it too. Were here to help you improve it."; // Default description
+  double sliderValue = 0.0;
+  String selectedLabel = "It’s OK !";
+  String description = "75% of our users face it too. Were here to help you improve it.";
+  bool isDataLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loadAssessmentData().then((_) {
+      setState(() {
+        if (controller.selectedFlexibilityLevel.value.isNotEmpty) {
+          selectedLabel = controller.selectedFlexibilityLevel.value;
+          sliderValue = _getSliderValueForLabel(selectedLabel);
+        }
+        isDataLoaded = true;
+      });
+    });
+  }
+
+  double _getSliderValueForLabel(String label) {
+    switch (label) {
+      case "It’s OK !":
+        return 0.0;
+      case "Nice!":
+        return 0.5;
+      case "Excellent!":
+        return 1.0;
+      default:
+        return 0.0;
+    }
+  }
 
   String _getCustomLabelForSlider(double value) {
     if (value <= 0.33) return "It’s OK !";
@@ -100,26 +127,20 @@ class _FlexibilityLevelPageState extends State<FlexibilityLevelPage> {
                 ],
               ),
             ),
-            Expanded(
+            const Expanded(
               child: Align(
                 alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    Get.offAll(() => HomePage(), transition: Transition.noTransition);
-                  },
-                  child: ReusableText(
-                    text: "Skip",
-                    color: AppColors.pGreenColor,
-                    fontWeight: FontWeight.w500,
-                    size: 14 * autoScale,
-                  ),
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.0),
+                  child: SizedBox(height: 20.0),
                 ),
               ),
             ),
           ],
         ),
       ),
-      body: Column(
+      body: isDataLoaded
+        ? Column(
         children: [
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20 * autoScale, vertical: 20 * autoScale),
@@ -206,7 +227,8 @@ class _FlexibilityLevelPageState extends State<FlexibilityLevelPage> {
             ),
           ),
         ],
-      ),
+      )
+          : const Center(child: CircularProgressIndicator(color: AppColors.pGreenColor,)),
       bottomNavigationBar: Padding(
         padding: EdgeInsets.only(left: 20.0 * autoScale, right: 20.0 * autoScale, top: 20.0 * autoScale, bottom: 40.0 * autoScale),
         child: SizedBox(
@@ -214,11 +236,10 @@ class _FlexibilityLevelPageState extends State<FlexibilityLevelPage> {
           width: double.infinity,
           child: ReusableButton(
             text: "Next",
-            onPressed: () async {
-              SharedPreferences prefs = await SharedPreferences.getInstance();
-              await prefs.setBool('seenIntro', true);
-              controller.selectedFlexibilityLevel.value = selectedLabel;
+            onPressed: () {
 
+              controller.selectedFlexibilityLevel.value = selectedLabel;
+              controller.saveAssessmentAnswer("flexibility_level", selectedLabel);
               Get.to(() => const AerobicLevelPage(), transition: Transition.noTransition);
 
             },
@@ -338,7 +359,7 @@ class GradientTrackShape extends SliderTrackShape {
     );
 
     final activePaint = Paint()
-      ..shader = LinearGradient(
+      ..shader = const LinearGradient(
         colors: [AppColors.pSOrangeColor, Colors.white],
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
@@ -347,12 +368,12 @@ class GradientTrackShape extends SliderTrackShape {
     final inactivePaint = Paint()..color = sliderTheme.inactiveTrackColor ?? AppColors.pGreyColor;
 
     context.canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTRB(trackRect.left, trackRect.top, thumbCenter.dx, trackRect.bottom), Radius.circular(10)),
+      RRect.fromRectAndRadius(Rect.fromLTRB(trackRect.left, trackRect.top, thumbCenter.dx, trackRect.bottom), const Radius.circular(10)),
       activePaint,
     );
 
     context.canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTRB(thumbCenter.dx, trackRect.top, trackRect.right, trackRect.bottom), Radius.circular(10)),
+      RRect.fromRectAndRadius(Rect.fromLTRB(thumbCenter.dx, trackRect.top, trackRect.right, trackRect.bottom), const Radius.circular(10)),
       inactivePaint,
     );
   }
