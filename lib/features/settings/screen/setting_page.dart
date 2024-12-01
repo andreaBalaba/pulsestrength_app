@@ -6,6 +6,7 @@ import 'package:pulsestrength/features/authentication/screen/login_page.dart';
 import 'package:pulsestrength/features/settings/controller/setting_controller.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
+import 'package:simple_ruler_picker/simple_ruler_picker.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -21,6 +22,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   bool isPrivacyExpanded = false;
   bool isEditInfoExpanded = false;
+  double height = 170;
 
 
   @override
@@ -183,8 +185,10 @@ class _SettingsPageState extends State<SettingsPage> {
               onTap: _toggleEditInfo,
             ),
             if (isEditInfoExpanded) ...[
-              Obx(() => _buildAccountInfo(
-                  "Height", "${controller.height.value} cm", AppColors.pOrangeColor)),
+              GestureDetector(
+                onTap: _showHeightBottomSheet,
+                child: _buildAccountInfo("Height", "${controller.height.value} cm", AppColors.pOrangeColor),
+              ),
               Obx(() => _buildAccountInfo(
                   "Weight", "${controller.weight.value} kg", AppColors.pOrangeColor)),
               Obx(() =>
@@ -312,7 +316,6 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-
   Widget _buildGenderSelection() {
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -328,7 +331,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           SizedBox(height: 10 * autoScale),
           Obx(() => AbsorbPointer( // Disables user interaction
-            absorbing: true, // Set to true to disable
+            absorbing: false, // Set to true to disable
             child: FlutterToggleTab(
               width: 40 * autoScale,
               borderRadius: 5 * autoScale,
@@ -349,11 +352,131 @@ class _SettingsPageState extends State<SettingsPage> {
               selectedLabelIndex: (index) {
                 String selected = index == 0 ? "Male" : "Female";
                 controller.selectGender(selected);
-              },
+                },
             ),
           )),
         ],
       ),
+    );
+  }
+
+  void _showHeightBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20 * autoScale)),
+      ),
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            top: 20 * autoScale,
+            left: 16 * autoScale,
+            right: 16 * autoScale,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: _buildHeightDialogContent(context),
+        );
+      },
+    );
+  }
+
+  Widget _buildHeightDialogContent(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Title Text
+        ReusableText(
+          text: "Height",
+          fontWeight: FontWeight.bold,
+          size: 20 * autoScale,
+        ),
+        SizedBox(height: 10 * autoScale),
+
+        // Unit Switch (cm/ft)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "cm",
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 16 * autoScale,
+              ),
+            ),
+            Switch(
+              value: true, // Toggle between cm and ft
+              onChanged: (bool value) {
+                // Handle unit change logic here
+              },
+            ),
+            Text(
+              "ft",
+              style: TextStyle(
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+                fontSize: 16 * autoScale,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 10 * autoScale),
+
+        // Display Height Value
+        Text(
+          "${controller.height.value} cm", // You can modify to reflect selected unit (cm or ft)
+          style: TextStyle(
+            fontSize: 40 * autoScale,
+            color: AppColors.pOrangeColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+
+        // Ruler-style Picker
+        SimpleRulerPicker(
+          minValue: 100,    // Minimum value (100 cm)
+          maxValue: 230,    // Maximum value (230 cm)
+          initialValue: controller.height.value,  // Current height value from the controller
+          onValueChanged: (value) {
+            controller.height.value = value; // Update the controller value
+          },
+          scaleLabelSize: 16,       // Size of the scale labels
+          scaleBottomPadding: 8,   // Padding below the scale labels
+          scaleItemWidth: 12,      // Width between lines
+          longLineHeight: 30,      // Height of long lines (major units)
+          shortLineHeight: 15,     // Height of short lines (minor units)
+          lineColor: Colors.black, // Color of the ruler lines
+          selectedColor: AppColors.pOrangeColor, // Color of the selected item
+          labelColor: Colors.black, // Color of the scale labels
+          lineStroke: 3,           // Thickness of the ruler lines
+          height: 120,             // Height of the picker
+        ),
+        SizedBox(height: 20 * autoScale),
+
+        // Save Button
+        ElevatedButton(
+          onPressed: () {
+            Navigator.pop(context); // Close the dialog and save the changes
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.pSOrangeColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10 * autoScale),
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 30.0 * autoScale, vertical: 12 * autoScale),
+            child: ReusableText(
+              text: 'Save',
+              size: 18 * autoScale,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        SizedBox(height: 10 * autoScale),
+      ],
     );
   }
 }

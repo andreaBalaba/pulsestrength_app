@@ -12,7 +12,6 @@ class ProteinWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final CalculatorController calculatorController = Get.put(CalculatorController());
 
-    // Ensure user data is fetched and weight is initialized
     calculatorController.fetchUserData();
 
     double screenWidth = Get.width;
@@ -37,7 +36,7 @@ class ProteinWidget extends StatelessWidget {
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.done,
                       onChanged: (value) {
-                        calculatorController.weight.value = int.tryParse(value) ?? 0; // Keep the weight editable
+                        calculatorController.weight.value = int.tryParse(value) ?? 0;
                       },
                       decoration: InputDecoration(
                         hintText: 'Weight',

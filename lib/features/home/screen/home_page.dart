@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/chatbot/chatbot_page.dart';
 import 'package:pulsestrength/features/home/controller/home_controller.dart';
+import 'package:pulsestrength/features/home/screen/widget/daily_task_widget.dart';
+import 'package:pulsestrength/features/home/screen/widget/today_plan_card_widget.dart';
+import 'package:pulsestrength/features/home/screen/widget/workout_plan_widget.dart';
+import 'package:pulsestrength/features/library/screen/library_page.dart';
+import 'package:pulsestrength/features/meal/screen/meal_page.dart';
+import 'package:pulsestrength/features/progress/screen/progress_page.dart';
 import 'package:pulsestrength/features/settings/screen/setting_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
@@ -18,12 +24,58 @@ class _HomePageState extends State<HomePage> {
   final HomeController homeController = Get.put(HomeController());
   int _currentIndex = 0;
   bool _isButtonDragged = false;
+  bool _showShadow = false;
   double _buttonVerticalPosition = 0;
+  double autoScale = Get.width / 400;
+
+  final ScrollController _scrollController = ScrollController();
+  final PageController _pageController = PageController();
+  final GlobalKey _dailyTaskKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_currentIndex == 0) { // Only listen for shadow changes in Home
+      if (_scrollController.position.pixels > 0 && !_showShadow) {
+        setState(() {
+          _showShadow = true;
+        });
+      } else if (_scrollController.position.pixels <= 0 && _showShadow) {
+        setState(() {
+          _showShadow = false;
+        });
+      }
+    }
+  }
+
+
+  void _scrollToDailyTask() {
+    final RenderBox? renderBox = _dailyTaskKey.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      final position = renderBox.localToGlobal(Offset.zero).dy;
+      _scrollController.animateTo(
+        _scrollController.offset + position - 100,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
 
   @override
   Widget build(BuildContext context) {
-    double autoScale = Get.width / 400;
     double screenHeight = Get.height;
 
     return Scaffold(
@@ -31,8 +83,9 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: AppColors.pBGWhiteColor,
-        elevation: 0,
+        elevation: _currentIndex == 0 && _showShadow ? 4.0 : 0.0,
         surfaceTintColor: AppColors.pNoColor,
+        shadowColor: _showShadow ? Colors.black26 : Colors.transparent,
         actions: [
           IconButton(
             icon: Image.asset(
@@ -80,13 +133,16 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Stack(
         children: [
-          Center(
-            child: ReusableText(
-              text: "Content goes here",
-              fontWeight: FontWeight.w600,
-              size: 20 * autoScale,
-              color: AppColors.pBlackColor,
-            ),
+          PageView(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              _buildHomeContent(),
+              const LibraryPage(),
+              const ChatBotPage(),
+              const ProgressPage(),
+              const MealPage()
+            ],
           ),
           Positioned(
             top: _isButtonDragged ? _buttonVerticalPosition : 0,
@@ -138,7 +194,7 @@ class _HomePageState extends State<HomePage> {
                 } else {
                   setState(() {
                     _currentIndex = index;
-                   // _pageController.jumpToPage(index);
+                    _pageController.jumpToPage(index);
                   });
                 }
               },
@@ -200,6 +256,36 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  Widget _buildHomeContent() {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 8.0 * autoScale),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 15 * autoScale), // Space between header and PlanCard
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0 * autoScale),
+              child: GestureDetector(
+                onTap: _scrollToDailyTask, // Scroll to Daily Task
+                child: const PlanCardWidget(),
+              ),
+            ),
+            SizedBox(height: 20 * autoScale),
+            const WorkoutPlanList(),
+            SizedBox(height: 15 * autoScale),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0 * autoScale),
+              child: DailyTaskList(key: _dailyTaskKey), // Assign the GlobalKey here
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   BottomNavigationBarItem _buildNavItem({
     required String icon,

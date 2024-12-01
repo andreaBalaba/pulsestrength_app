@@ -189,7 +189,7 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
                   "discomfort",
                   controller.discomfortChoices[controller.selectedAnyDiscomfortIndex.value],
                   );
-                  await controller.markDataAsCollected();
+
                 Get.offAll(() => const SummaryPage(), transition: Transition.noTransition);
               },
               color: controller.selectedAnyDiscomfortIndex.value == -1

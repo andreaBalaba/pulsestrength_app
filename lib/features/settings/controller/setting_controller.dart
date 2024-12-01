@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/authentication/controller/login_controller.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
@@ -12,6 +13,8 @@ class SettingsController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
+  final AssessmentController assessmentController = Get.put(AssessmentController());
+
 
   final RxBool isNotificationEnabled = false.obs;
   final RxBool isWarmUpEnabled = false.obs;
@@ -53,6 +56,47 @@ class SettingsController extends GetxController {
     }
   }
 
+  Future<void> editInformation() async {
+    try {
+      final User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception("No user is currently signed in.");
+      }
+
+      final userId = user.uid;
+      final userRef = _databaseRef.child("users").child(userId).child("assessment");
+
+      // Fetch current data to avoid overwriting other fields
+      final snapshot = await userRef.get();
+      if (snapshot.exists) {
+        final Map<String, dynamic> currentData = Map<String, dynamic>.from(snapshot.value as Map);
+
+        currentData['gender'] = selectedGender.value;
+        currentData['age'] = age.value;
+        currentData['weight'] = weight.value;
+        currentData['height'] = height.value;
+
+        await userRef.set(currentData);
+
+      } else {
+        Get.snackbar(
+          'Error',
+          'No existing assessment data found to update.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.redAccent,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to save assessment data: ${e.toString()}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.redAccent,
+      );
+    }
+  }
+
+
   // Toggle methods for each setting
   void toggleNotification(bool value) {
     isNotificationEnabled.value = value;
@@ -87,6 +131,7 @@ class SettingsController extends GetxController {
   // Method to select gender
   void selectGender(String gender) {
     selectedGender.value = gender;
+    editInformation();
     Get.snackbar(
       'Settings',
       'Gender set to $gender',

@@ -1,11 +1,14 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/assessment/screen/get_started_page.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
 import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -27,21 +30,44 @@ class _SplashPageState extends State<SplashPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-      final String? lastPage = prefs.getString('lastPage');
 
       if (isLoggedIn) {
-        // Navigate to lastPage if it's HomePage, otherwise default to HomePage
-        if (lastPage == 'HomePage') {
-          Get.off(() => const HomePage());
+        // If the user is logged in, check if they are signed in via Google or Email/Password
+        final User? currentUser = FirebaseAuth.instance.currentUser;
+
+        if (currentUser != null) {
+          // Check the user's data collection status in Realtime Database
+          final DatabaseReference userRef = FirebaseDatabase.instance
+              .ref()
+              .child("users")
+              .child(currentUser.uid);
+          final DataSnapshot snapshot = await userRef.get();
+
+          if (snapshot.exists) {
+            final bool isDataCollected = snapshot.child("isDataCollected").value as bool? ?? false;
+
+            // If data is collected, navigate to HomePage; otherwise, navigate to GetStarted page
+            if (isDataCollected) {
+              Get.offAll(() => const HomePage());
+            } else {
+              Get.offAll(() => const GetStarted()); // Redirect to Get Started page
+            }
+          } else {
+            // If the user doesn't have data in the database, navigate to GetStartedPage
+            Get.offAll(() => const GetStarted());
+          }
         } else {
-          Get.off(() => const HomePage()); // Default to HomePage for logged-in users
+          // If no current user is logged in (Google or Email/Password), proceed to LogInPage
+          Get.offAll(() => const LogInPage());
         }
       } else {
-        Get.off(() => const LogInPage());
+        // If the user is not logged in, navigate to LogInPage
+        Get.offAll(() => const LogInPage());
       }
     } catch (e) {
       print("Error navigating based on status: $e");
-      Get.off(() => const LogInPage());
+      // In case of an error, fall back to the LogInPage
+      Get.offAll(() => const LogInPage());
     }
   }
 

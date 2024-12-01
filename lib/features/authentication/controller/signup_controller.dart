@@ -8,6 +8,7 @@ import 'package:pulsestrength/features/authentication/controller/login_controlle
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
 import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -51,7 +52,6 @@ class SignUpController extends GetxController {
         idToken: googleAuth.idToken,
       );
 
-      // Attempt to sign in with Google
       UserCredential googleUserCredential = await _auth.signInWithCredential(credential);
       final User? googleUserDetails = googleUserCredential.user;
 
@@ -60,33 +60,20 @@ class SignUpController extends GetxController {
         return null;
       }
 
-      // Check if the email already exists for email/password
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setBool('isLoggedIn', true);
+      prefs.setString('lastPage', 'GetStarted');
+
       final List<String> signInMethods = await _auth.fetchSignInMethodsForEmail(googleUserDetails.email!);
+
       if (signInMethods.contains('password')) {
-        // Email/password account exists, link Google account
-        try {
-          final User? currentUser = _auth.currentUser;
-          if (currentUser != null) {
-            await currentUser.linkWithCredential(credential);
-            onPrompt("Google account successfully linked to your existing email/password account.");
-          }
-        } catch (e) {
-          onPrompt("Error linking Google account: ${e.toString()}");
-          return null;
-        }
+        await _linkGoogleToExistingAccount(credential, onPrompt);
       }
 
-      // Update email verification status in the database
+      final bool isNewUser = await _ensureUserDataInDatabase(googleUserDetails);
+
       final DatabaseReference userRef = _databaseRef.child("users").child(googleUserDetails.uid);
-      await userRef.update({"isVerified": true});
-
-      // If user is new, save data in the database
       final DataSnapshot snapshot = await userRef.get();
-      if (!snapshot.exists) {
-        await _saveGoogleUserData(googleUserDetails);
-      }
-
-
       final bool isDataCollected = snapshot.child("isDataCollected").value as bool? ?? false;
 
       if (isDataCollected) {
@@ -104,17 +91,61 @@ class SignUpController extends GetxController {
     }
   }
 
+  Future<void> _linkGoogleToExistingAccount(
+      OAuthCredential credential, Function(String) onPrompt) async {
+    try {
+      final User? currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        // Link Google account to existing email/password account
+        await currentUser.linkWithCredential(credential);
+        onPrompt("Google account successfully linked to your existing email/password account.");
+      }
+    } catch (e) {
+      onPrompt("Error linking Google account: ${e.toString()}");
+      rethrow;
+    }
+  }
+
+  Future<bool> _ensureUserDataInDatabase(User user) async {
+    final DatabaseReference userRef = _databaseRef.child("users").child(user.uid);
+    final DataSnapshot snapshot = await userRef.get();
+
+    if (!snapshot.exists) {
+      await _saveGoogleUserData(user);
+      return true; // New user
+    }
+    return false; // Existing user
+  }
 
   Future<void> _saveGoogleUserData(User user) async {
-    await _databaseRef.child("users").child(user.uid).set({
-      "username": user.displayName ?? "User",
-      "email": user.email,
-      "isVerified": true,
-      "isDataCollected": false,
-      "isCalculatorOnboarded": false,
-      "created_at": DateTime.now().toIso8601String(),
-    });
+    try {
+      await _databaseRef.child("users").child(user.uid).set({
+        "username": user.displayName ?? "User",
+        "email": user.email,
+        "isVerified": true,
+        "isDataCollected": false,
+        "isCalculatorOnboarded": false,
+        "created_at": DateTime.now().toIso8601String(),
+      });
+      print("Google user data saved successfully.");
+    } catch (e) {
+      print("Error saving Google user data: $e");
+      rethrow;
+    }
   }
+
+  Future<void> verifyEmailIfNeeded(User user, Function(String) onPrompt) async {
+    // Step 1: Check if the user's email is verified
+    if (!user.emailVerified) {
+      await user.sendEmailVerification();
+      onPrompt("Email verification sent. Please verify your email.");
+      // Optionally, navigate to a verification page or wait for confirmation
+    } else {
+      onPrompt("Email is already verified.");
+    }
+  }
+
+
 
   Future<void> signUp() async {
     if (_isFormValid()) {
@@ -155,7 +186,7 @@ class SignUpController extends GetxController {
     await _databaseRef.child("users").child(userId).set({
       "username": usernameController.text.trim(),
       "email": emailController.text.trim(),
-      "isVerified": false, // Set to false until email verification is complete
+      "isVerified": false,
       "isDataCollected": false,
       "isCalculatorOnboarded": false,
       "created_at": DateTime.now().toIso8601String(),

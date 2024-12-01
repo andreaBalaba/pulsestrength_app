@@ -23,7 +23,7 @@ class _TargetWeightPageState extends State<TargetWeightPage> {
   final int minWeight = 30;
 
   Future<void> _initializePageController() async {
-    await controller.loadAssessmentData();  // Load data
+    await controller.loadAssessmentData();
     int initialWeight = controller.targetWeight.value;
     _pageController = PageController(
       viewportFraction: 0.25,

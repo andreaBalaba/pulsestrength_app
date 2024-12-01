@@ -31,7 +31,7 @@ class AssessmentController extends GetxController {
   var inputMessage = ''.obs;
 
 
-  var targetWeight = 70.obs;
+  var targetWeight = 50.obs;
   var weightChangeHeader = ''.obs;
   var weightChangeSemiHeader = ''.obs;
   var weightChangeMessage = ''.obs;
@@ -208,39 +208,27 @@ class AssessmentController extends GetxController {
 
         if (data.containsKey('targetWeight') && data['targetWeight'] != null) {
           targetWeight.value = data['targetWeight'];
-        } else if (data.containsKey('weight') && data['weight'] != null) {
-          targetWeight.value = data['weight'];
-        } else {
-          targetWeight.value = data['weight'] ?? 70;
         }
 
-        if (data.containsKey('weight') && data['weight'] != null) {
-          if (targetWeight.value != data['weight']) {
-            targetWeight.value = data['weight'];
-            await _databaseRef.child("users").child(user.uid).child("assessment").update({
-              'targetWeight': targetWeight.value,
-            });
-          }
-        }
 
         if (data.containsKey('body_shape')) {
           selectedBodyShape.value = data['body_shape'] ?? '';
         }
 
         if (data.containsKey('activity_level')) {
-          selectedActivityLevel.value = data['activity_level'] ?? '';
+          selectedActivityLevel.value = data['activity_level'] ?? selectedActivityLevel.value;
         }
 
         if (data.containsKey('flexibility_level')) {
-          selectedFlexibilityLevel.value = data['flexibility_level'] ?? '';
+          selectedFlexibilityLevel.value = data['flexibility_level'] ?? selectedFlexibilityLevel.value;
         }
 
         if (data.containsKey('aerobic_level')) {
-          selectedAerobicLevel.value = data['aerobic_level'] ?? '';
+          selectedAerobicLevel.value = data['aerobic_level'] ?? selectedAerobicLevel.value;
         }
 
         if (data.containsKey('fitness_level')) {
-          selectedAerobicLevel.value = data['fitness_level'] ?? '';
+          selectedFitnessLevel.value = data['fitness_level'] ?? selectedFitnessLevel.value;
         }
 
         if (data.containsKey('gender')) {
@@ -368,6 +356,34 @@ class AssessmentController extends GetxController {
       }
     }
   }
+
+  Future<String> getFocusAreaFromDatabase() async {
+    final user = _auth.currentUser;
+    if (user == null) {
+      print("User not logged in.");
+      return '';
+    }
+
+    try {
+      final snapshot = await _databaseRef.child("users").child(user.uid).child("assessment").get();
+
+      if (snapshot.exists) {
+        final data = Map<String, dynamic>.from(snapshot.value as Map);
+        if (data.containsKey('focus_area')) {
+          return data['focus_area'] ?? ''; // Return the focus area string
+        } else {
+          return ''; // Return empty string if not found
+        }
+      } else {
+        print("No assessment data found for user.");
+        return '';
+      }
+    } catch (e) {
+      print("Error fetching focus area: $e");
+      return '';
+    }
+  }
+
 
   void validateFields() {
     double? height = double.tryParse(heightController.text);

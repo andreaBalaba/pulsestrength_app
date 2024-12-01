@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -14,43 +15,84 @@ class ChatBotPageState extends State<ChatBotPage> {
   final List<Map<String, String>> _messages = [];
   bool _isTyping = false;
 
-  Future<void> sendMessage(String message) async {
-    setState(() {
-      _messages.add({'sender': 'user', 'text': message});
-      _isTyping = true;
-    });
-
-    // API call to Gemini API
-    final response = await sendToGeminiAPI(message);
-
-    setState(() {
-      _isTyping = false;
-      _messages.add({'sender': 'bot', 'text': response});
-    });
+  @override
+  void initState() {
+    super.initState();
+    loadEnv();
   }
 
+  // Load environment variables from .env file
+  Future<void> loadEnv() async {
+    await dotenv.load();
+    if (dotenv.env['API_KEY'] == null) {
+      showError("Error: API key is missing.");
+    }
+  }
+
+  // Show error message method
+  void showError(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Error"),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Send user message and call API
+  Future<void> sendMessage(String message) async {
+    if (message.trim().isNotEmpty) {
+      setState(() {
+        _messages.add({'sender': 'user', 'text': message});
+        _isTyping = true;
+      });
+
+      // API call to Gemini API
+      final response = await sendToGeminiAPI(message);
+
+      setState(() {
+        _isTyping = false;
+        _messages.add({'sender': 'bot', 'text': response});
+      });
+    }
+  }
+
+  // Send request to Gemini API and retrieve response
   Future<String> sendToGeminiAPI(String message) async {
-    const String apiKey = "AIzaSyALho2K2wuPwaJYvHWn90PVWO8bYNnV4BQ";
-    const String apiUrl = "https://api.openai.com/v1/engines/gemini/messages";
+    final String apiKey = dotenv.env['API_KEY']!; // Get the API key from environment variable
+    final url = Uri.parse('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=$apiKey'); // Updated Gemini API endpoint
 
-    try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $apiKey',
-        },
-        body: jsonEncode({'message': message}),
-      );
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'contents': [
+          {
+            'parts': [
+              {'text': message},
+            ],
+          },
+        ],
+      }),
+    );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['reply'] ?? "I couldn't understand that. Can you please rephrase?";
-      } else {
-        return "Something went wrong. Please try again.";
-      }
-    } catch (e) {
-      return "Error: Unable to connect to the server.";
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['contents'][0]['parts'][0]['text'] ?? "No response text available";
+    } else {
+      showError('Error: ${response.statusCode} ${response.body}');
+      return "Error: Something went wrong.";
     }
   }
 

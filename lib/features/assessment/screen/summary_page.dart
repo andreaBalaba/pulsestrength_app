@@ -1,18 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/home/screen/home_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 
-class SummaryPage extends StatelessWidget {
+class SummaryPage extends StatefulWidget {
   const SummaryPage({super.key});
+
+  @override
+  State<SummaryPage> createState() => _SummaryPageState();
+}
+
+class _SummaryPageState extends State<SummaryPage> {
+  final AssessmentController controller = Get.put(AssessmentController());
+  String focusArea = '';
+
+  @override
+  void initState() {
+    super.initState();
+    loadFocusArea();
+  }
+
+  Future<void> loadFocusArea() async {
+    String area = await controller.getFocusAreaFromDatabase();
+    setState(() {
+      focusArea = area;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final double autoScale = Get.width / 400;
     final double screenHeight = Get.height;
+
 
     // Example workout plan list for a new user
     final List<String> workoutPlan = [
@@ -59,10 +82,10 @@ class SummaryPage extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1,
                     ),
-                    children: const [
-                      TextSpan(text: "75 kg", style: TextStyle(color: AppColors.pSOrangeColor)),
-                      TextSpan(text: " on ", style: TextStyle(color: AppColors.pBlackColor)),
-                      TextSpan(text: "Dec 25", style: TextStyle(color: AppColors.pSOrangeColor)),
+                    children: [
+                      TextSpan(text: "${controller.targetWeight.value} kg", style: const TextStyle(color: AppColors.pSOrangeColor)),
+                      const TextSpan(text: " on ", style: TextStyle(color: AppColors.pBlackColor)),
+                      const TextSpan(text: "Dec 25", style: TextStyle(color: AppColors.pSOrangeColor)),
                     ],
                   ),
                   textAlign: TextAlign.center,
@@ -88,7 +111,7 @@ class SummaryPage extends StatelessWidget {
                     _buildIconTextRow(
                       imagePath: IconAssets.pTargetIcon,
                       label: 'Focus Area',
-                      value: 'Full body',
+                      value: focusArea.isEmpty ? 'Loading...' : focusArea,
                       autoScale: autoScale,
                     ),
                     SizedBox(height: 10.0 * autoScale),
@@ -140,7 +163,8 @@ class SummaryPage extends StatelessWidget {
           width: double.infinity,
           child: ReusableButton(
             text: "GET MY PLAN",
-            onPressed: () {
+            onPressed: () async {
+              await controller.markDataAsCollected(); //temporary
               Get.offAll(() => const HomePage(), transition: Transition.noTransition);
             },
             color: AppColors.pGreenColor,

@@ -1,18 +1,29 @@
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:pulsestrength/api/dummy_data.dart';
 import 'package:pulsestrength/features/calculator/screen/side_calculator_page.dart';
 import 'package:pulsestrength/features/onboard/calculator_onboard_page.dart';
+import 'package:pulsestrength/model/exercise_model.dart';
 
 class HomeController extends GetxController {
   RxInt currentIndex = 0.obs;
   Rxn<String> username = Rxn<String>();
+  var dailyTasks = <DailyTask>[].obs;
+  var workoutPlans = <WorkoutPlan>[].obs;
+  var showShadow = false.obs;
+
 
   @override
   void onInit() {
     super.onInit();
     fetchUsername();
+    dailyTasks.value = DailyTasksData.getDailyTasks();
+    workoutPlans.value = WorkoutPlanData.getWorkoutPlans();
   }
+
+  int get completedTasksCount => dailyTasks.where((task) => task.isCompleted).length;
+  int get totalTasksCount => dailyTasks.length;
 
   Future<void> fetchUsername() async {
     try {
@@ -71,7 +82,7 @@ class HomeController extends GetxController {
 
       String userId = user.uid;
       DatabaseReference onboardRef = FirebaseDatabase.instance.ref('users/$userId');
-      await onboardRef.update({"isCalculatorOnboarded": true}); // Set onboarding status to true
+      await onboardRef.update({"isCalculatorOnboarded": true});
     } catch (e) {
       print('Error completing onboarding: $e');
     }
@@ -84,7 +95,7 @@ class HomeController extends GetxController {
     } else {
       Get.to(() => OnboardCalculator(
         onComplete: () async {
-          await completeOnboarding(); // Mark as complete on skip or get started
+          await completeOnboarding();
           Get.off(() => const MainCalculatorPage(), transition: Transition.leftToRight);
         },
       ), transition: Transition.leftToRight);
