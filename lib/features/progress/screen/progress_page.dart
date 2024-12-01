@@ -74,20 +74,17 @@ class _ProgressPageState extends State<ProgressPage> with AutomaticKeepAliveClie
         surfaceTintColor: AppColors.pNoColor,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
+      body: const SingleChildScrollView(
         //controller: controller.scrollController,
-        padding: const EdgeInsets.all(16.0),
+        padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ProgressCardsWidget(),
-            const SizedBox(height: 20),
-            WorkoutChartWidget(
-              weeklyAverage: 70, // Dummy data for weekly average in minutes
-              dailyWorkoutMinutes: [20, 30, 45, 60, 25, 40, 55], // Dummy data for daily minutes
-            ),
-            const SizedBox(height: 20),
-            const DailyTaskList(),
+            ProgressCardsWidget(),
+            SizedBox(height: 20),
+            WorkoutChartWidget(),
+            SizedBox(height: 20),
+            DailyTaskList(),
           ],
         ),
       ),

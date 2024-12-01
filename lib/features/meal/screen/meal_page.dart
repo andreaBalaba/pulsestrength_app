@@ -73,13 +73,13 @@ class _MealPageState extends State<MealPage> with AutomaticKeepAliveClientMixin 
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MealCardWidget(),
+            const MealCardWidget(),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildButton(
-                  text: "Create meal",
+                  text: "Add food",
                   onPressed: () {
                     // Action for Create meal
                   },
@@ -94,7 +94,7 @@ class _MealPageState extends State<MealPage> with AutomaticKeepAliveClientMixin 
               ],
             ),
             const SizedBox(height: 20),
-            MealHistoryList()
+            const MealHistoryList()
           ],
         ),
       ),

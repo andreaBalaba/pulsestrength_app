@@ -7,6 +7,7 @@ import 'package:pulsestrength/features/home/screen/widget/today_plan_card_widget
 import 'package:pulsestrength/features/home/screen/widget/workout_plan_widget.dart';
 import 'package:pulsestrength/features/library/screen/library_page.dart';
 import 'package:pulsestrength/features/meal/screen/meal_page.dart';
+import 'package:pulsestrength/features/profile/profile_page.dart';
 import 'package:pulsestrength/features/progress/screen/progress_page.dart';
 import 'package:pulsestrength/features/settings/screen/setting_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
@@ -99,7 +100,7 @@ class _HomePageState extends State<HomePage> {
         ],
         title: GestureDetector(
           onTap: () {
-            // Handle profile icon tap
+            Get.to(() => const ProfilePage(), transition: Transition.noTransition);
           },
           child: Row(
             children: [
