@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pulsestrength/features/chatbot/chatbot_page.dart';
+import 'package:pulsestrength/features/chatbot/new_chatbot_page.dart';
 import 'package:pulsestrength/features/home/controller/home_controller.dart';
 import 'package:pulsestrength/features/home/screen/widget/daily_task_widget.dart';
 import 'package:pulsestrength/features/home/screen/widget/today_plan_card_widget.dart';
 import 'package:pulsestrength/features/home/screen/widget/workout_plan_widget.dart';
 import 'package:pulsestrength/features/library/screen/library_page.dart';
 import 'package:pulsestrength/features/meal/screen/meal_page.dart';
-import 'package:pulsestrength/features/profile/profile_page.dart';
+import 'package:pulsestrength/features/profile/screen/profile_page.dart';
 import 'package:pulsestrength/features/progress/screen/progress_page.dart';
 import 'package:pulsestrength/features/settings/screen/setting_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
@@ -140,7 +140,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildHomeContent(),
               const LibraryPage(),
-              const ChatBotPage(),
+              const ChatBotScreen(gender: "Female", age: 21, height: 153, weight: 43, isDisabled: false),
               const ProgressPage(),
               const MealPage()
             ],
@@ -191,7 +191,7 @@ class _HomePageState extends State<HomePage> {
               currentIndex: _currentIndex,
               onTap: (index) {
                 if (index == 2) {
-                  Get.to(() => const ChatBotPage(), preventDuplicates: true);
+                  Get.to(() => const ChatBotScreen(gender: "Female", age: 21, height: 153, weight: 43, isDisabled: false), preventDuplicates: true);
                 } else {
                   setState(() {
                     _currentIndex = index;

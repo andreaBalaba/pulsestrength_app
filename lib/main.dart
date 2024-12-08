@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:pulsestrength/features/splash/screen/splash_page.dart';
@@ -22,6 +23,7 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  Gemini.init(apiKey: GEMINI_KEY);
   runApp(const MyApp());
 }
 

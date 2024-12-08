@@ -15,9 +15,9 @@ class WorkoutChartWidget extends StatelessWidget {
     List<int> dailyWorkoutMinutes = [90, 45, 120, 75, 60, 150, 30];
 
     String formatTime(int minutes) {
-      int hours = minutes ~/ 60; // Calculate the number of hours
-      int mins = minutes % 60; // Calculate the remaining minutes
-      return '$hours hr ${mins > 0 ? '$mins min' : ''}'; // Return formatted string
+      int hours = minutes ~/ 60; 
+      int mins = minutes % 60;
+      return '$hours hr ${mins > 0 ? '$mins min' : ''}';
     }
 
     return Padding(
@@ -100,7 +100,7 @@ class WorkoutChartWidget extends StatelessWidget {
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       int minutes = rod.toY.toInt();
                       return BarTooltipItem(
-                        formatTime(minutes), // Use the formatted time here
+                        formatTime(minutes),
                         const TextStyle(color: AppColors.pWhiteColor, fontFamily: 'Poppins'),
                       );
                     },
