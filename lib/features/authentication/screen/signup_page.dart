@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:pulsestrength/features/authentication/controller/login_controller.dart';
 import 'package:pulsestrength/features/authentication/controller/signup_controller.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
+import 'package:pulsestrength/features/authentication/screen/privacy_policy.dart';
+import 'package:pulsestrength/features/authentication/screen/terms_and_condition.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
@@ -249,7 +251,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {
-                      // Add Terms and Conditions logic
+                       Get.to(() => const TermsAndConditionsPage());
                     },
                 ),
                 const TextSpan(
@@ -265,7 +267,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   ),
                   recognizer: TapGestureRecognizer()
                     ..onTap = () {
-                      // Add Privacy Policy logic
+                      Get.to(() => const PrivacyPolicyPage());
                     },
                 ),
               ],

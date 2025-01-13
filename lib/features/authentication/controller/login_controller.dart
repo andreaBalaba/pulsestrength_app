@@ -78,11 +78,35 @@ class LoginController extends GetxController {
         Get.offAll(() => const GetStarted());
       }
     } on FirebaseAuthException catch (e) {
+      String errorMessage;
+
+      switch (e.code) {
+        case 'invalid-credential':
+        case 'INVALID_LOGIN_CREDENTIALS':
+        case 'wrong-password':
+        case 'user-not-found':
+          errorMessage = 'Incorrect email or password.';
+          break;
+        case 'invalid-email':
+          errorMessage = 'Please enter a valid email address.';
+          break;
+        case 'user-disabled':
+          errorMessage = 'This account has been disabled.';
+          break;
+        case 'too-many-requests':
+          errorMessage = 'Too many failed attempts. Please try again later.';
+          break;
+        default:
+          errorMessage = 'An error occurred. Please try again.';
+      }
+
       Get.snackbar(
-        "Login Failed",
-        _mapFirebaseAuthError(e),
+        'Error',
+        errorMessage,
+        snackPosition: SnackPosition.TOP,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
+        margin: const EdgeInsets.all(20),
       );
     } catch (e) {
       Get.snackbar(

@@ -52,6 +52,7 @@ dependencies:
   pedometer: ^4.0.2
   permission_handler: ^11.3.1
   fl_chart:
+  intl:
   google_sign_in:
   connectivity_plus:
   http: ^1.2.2
