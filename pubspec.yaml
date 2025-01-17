@@ -196,6 +196,9 @@ flutter:
     - assets/images/peeps.png
     - assets/images/cfire.png
     - assets/images/why_quest.png
+    - lib/api/Gym-equipments-Datas.json
+    - lib/api/Hit_it_right_plan.json
+    - lib/api/Personalized_Workout_Plan.json
 
 
 
