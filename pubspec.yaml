@@ -63,6 +63,7 @@ dependencies:
   flutter_gemini: ^2.0.4
   image_picker:
   dash_chat_2: ^0.0.20
+  uuid: ^4.5.1
 
 
 

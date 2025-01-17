@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/chatbot/controller/chatbot_controller.dart';
 import 'package:pulsestrength/features/chatbot/new_chatbot_page.dart';
 import 'package:pulsestrength/features/home/controller/home_controller.dart';
 import 'package:pulsestrength/features/home/screen/widget/daily_task_widget.dart';
@@ -23,6 +24,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final HomeController homeController = Get.put(HomeController());
+  final ChatBotController botController = Get.put(ChatBotController());
+
   int _currentIndex = 0;
   bool _isButtonDragged = false;
   bool _showShadow = false;
@@ -140,7 +143,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildHomeContent(),
               const LibraryPage(),
-              const ChatBotScreen(gender: "Female", age: 21, height: 153, weight: 43, isDisabled: false),
+              ChatBotScreen(gender: botController.gender.value, age: botController.age.value, height: botController.height.value, weight: botController.weight.value, isDisabled: false),
               const ProgressPage(),
               const MealPage()
             ],
@@ -191,7 +194,7 @@ class _HomePageState extends State<HomePage> {
               currentIndex: _currentIndex,
               onTap: (index) {
                 if (index == 2) {
-                  Get.to(() => const ChatBotScreen(gender: "Female", age: 21, height: 153, weight: 43, isDisabled: false), preventDuplicates: true);
+                  Get.to(() => ChatBotScreen(gender: botController.gender.value, age: botController.age.value, height: botController.height.value, weight: botController.weight.value, isDisabled: false), preventDuplicates: true);
                 } else {
                   setState(() {
                     _currentIndex = index;
