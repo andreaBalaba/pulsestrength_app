@@ -120,20 +120,6 @@ class LoginController extends GetxController {
     }
   }
 
-  String _mapFirebaseAuthError(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'user-not-found':
-        return "No account found with this email. Please sign up.";
-      case 'wrong-password':
-        return "Incorrect password. Please try again.";
-      case 'too-many-requests':
-        return "Too many login attempts. Please wait a while and try again.";
-      case 'invalid-email':
-        return "The email address is invalid. Please check your input.";
-      default:
-        return e.message ?? "An error occurred. Please try again.";
-    }
-  }
 
   Future<void> logout() async {
     try {

@@ -199,11 +199,18 @@ class _LibraryPageState extends State<LibraryPage> with AutomaticKeepAliveClient
                                     color: AppColors.pBlack87Color,
                                     size: 12.0 * autoScale,
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.save, color: Colors.white),
-                                    onPressed: () {
+                                  GestureDetector(
+                                    onTap: () {
                                       controller.saveEquipment(equipment);
                                     },
+                                    child: Obx(
+                                      () => Icon(
+                                        controller.savedEquipmentList.any((e) => e.name == equipment.name)
+                                            ? Icons.bookmark
+                                            : Icons.bookmark_border,
+                                        color: AppColors.pBlackColor,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),

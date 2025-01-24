@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
@@ -32,29 +33,63 @@ class LibraryController extends GetxController {
     filteredEquipmentList.value = equipmentList;
   }
 
-  // Load saved equipment from Firebase
+
+
   Future<void> loadSavedEquipment() async {
-    final userId = 'your-user-id'; // Replace with actual user ID
-    final snapshot = await databaseRef.child('users/$userId/savedEquipment').get();
-    if (snapshot.exists) {
-      final Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
-      savedEquipmentList.value = data.values
-          .map((e) => Equipment.fromJson(e as Map<String, dynamic>))
-          .toList();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userId = user.uid; // Get the user ID from Firebase Authentication
+      final snapshot = await databaseRef.child('users/$userId/savedEquipment').get();
+      if (snapshot.exists) {
+        final Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
+        savedEquipmentList.value = data.values
+            .map((e) => Equipment.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+    } else {
+      // Handle case when user is not logged in
+      print("No user is logged in");
     }
   }
 
   // Save equipment to Firebase
   Future<void> saveEquipment(Equipment equipment) async {
-    final userId = 'your-user-id'; // Replace with actual user ID
-    final equipmentMap = equipment.toJson();
-
-    await databaseRef
-        .child('users/$userId/savedEquipment')
-        .push()
-        .set(equipmentMap);
-
-    savedEquipmentList.add(equipment); // Update the saved list locally
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userId = user.uid;
+      final equipmentId = equipment.name;
+      final equipmentRef = databaseRef.child('users/$userId/savedEquipment/$equipmentId');
+      
+      final snapshot = await equipmentRef.get();
+      if (snapshot.exists) {
+        await equipmentRef.remove();
+        savedEquipmentList.removeWhere((e) => e.name == equipment.name);
+        
+        Get.snackbar(
+          'Equipment Unsaved',
+          '${equipment.name} has been removed from your saved equipment.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(20),
+        );
+      } else {
+        await equipmentRef.set(equipment.toJson());
+        savedEquipmentList.add(equipment);
+        
+        Get.snackbar(
+          'Equipment Saved',
+          '${equipment.name} has been added to your saved equipment.',
+          snackPosition: SnackPosition.TOP,
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+          margin: const EdgeInsets.all(20),
+        );
+      }
+    } else {
+      // Handle case when user is not logged in
+      print("No user is logged in");
+    }
   }
 
   // Update search query

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/features/library/controller/library_controller.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 
@@ -12,6 +13,7 @@ class UserCards extends StatelessWidget {
     final screenWidth = Get.width;
     final autoScale = screenWidth / 400;
     final cardHeight = 108 * autoScale;
+    final LibraryController libraryController = Get.find<LibraryController>();
 
     return Row(
       children: [
@@ -29,13 +31,15 @@ class UserCards extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center, // Center-align content
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ReusableText(
-                    text: "10",
-                    size: 30 * autoScale,
-                    fontWeight: FontWeight.bold,
+                  Obx(
+                    () => ReusableText(
+                      text: libraryController.savedEquipmentList.length.toString(),
+                      size: 30 * autoScale,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   ReusableText(
-                    text: "Equipment Captured",
+                    text: "Equipment Saved",
                     size: 14 * autoScale,
                     fontWeight: FontWeight.w500,
                     color: AppColors.pBlack87Color,
