@@ -40,4 +40,4 @@ class AppColors{
 
 }
 
-const String GEMINI_KEY = "AIzaSyALho2K2wuPwaJYvHWn90PVWO8bYNnV4BQ";
+const String GEMINI_KEY = "AIzaSyDJ1gR_dFkY5QkJOo7xAxOaseuZgvKYQZI";
