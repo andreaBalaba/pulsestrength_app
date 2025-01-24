@@ -38,16 +38,25 @@ class LibraryController extends GetxController {
   Future<void> loadSavedEquipment() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final userId = user.uid; // Get the user ID from Firebase Authentication
+      final userId = user.uid;
       final snapshot = await databaseRef.child('users/$userId/savedEquipment').get();
       if (snapshot.exists) {
-        final Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
-        savedEquipmentList.value = data.values
-            .map((e) => Equipment.fromJson(e as Map<String, dynamic>))
-            .toList();
+        try {
+          final Map<dynamic, dynamic> rawData = snapshot.value as Map<dynamic, dynamic>;
+          savedEquipmentList.value = rawData.values.map((item) {
+            // Convert Map<dynamic, dynamic> to Map<String, dynamic>
+            final Map<String, dynamic> stringMap = {};
+            (item as Map<dynamic, dynamic>).forEach((key, value) {
+              stringMap[key.toString()] = value;
+            });
+            return Equipment.fromJson(stringMap);
+          }).toList();
+        } catch (e) {
+          print('Error loading saved equipment: $e');
+          savedEquipmentList.value = [];
+        }
       }
     } else {
-      // Handle case when user is not logged in
       print("No user is logged in");
     }
   }

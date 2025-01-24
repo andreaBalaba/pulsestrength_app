@@ -1,11 +1,13 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-
+import 'package:firebase_database/firebase_database.dart';
 
 class MealCardWidget extends StatefulWidget {
   const MealCardWidget({super.key});
@@ -22,35 +24,54 @@ class _MealCardWidgetState extends State<MealCardWidget> {
   Widget build(BuildContext context) {
     double cardHeight = 200.0 * autoScale;
 
-    return Column(
-      children: [
-        SizedBox(
-          height: cardHeight,
-          child: PageView(
-            controller: _pageController,
+    return StreamBuilder<DatabaseEvent>(
+        stream: FirebaseDatabase.instance
+            .ref('users/${FirebaseAuth.instance.currentUser!.uid}/foodData')
+            .onValue,
+        builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: Text('Loading'));
+          } else if (snapshot.hasError) {
+            return const Center(child: Text('Something went wrong'));
+          } else if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          dynamic data = snapshot.data!.snapshot.value;
+          return Column(
             children: [
-              _buildCaloriesCard(),
-              _buildMacrosCard(),
-              _buildNutritionCard(),
+              SizedBox(
+                height: cardHeight,
+                child: PageView(
+                  controller: _pageController,
+                  children: [
+                    GestureDetector(
+                        onTap: () {
+                          _showNumberInputDialog(context);
+                        },
+                        child: _buildCaloriesCard(data)),
+                    _buildMacrosCard(data),
+                    _buildNutritionCard(data),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 10),
+              SmoothPageIndicator(
+                controller: _pageController,
+                count: 3,
+                effect: const ScrollingDotsEffect(
+                  dotWidth: 6,
+                  dotHeight: 6,
+                  activeDotColor: AppColors.pBlackColor,
+                  dotColor: AppColors.pMGreyColor,
+                ),
+              ),
             ],
-          ),
-        ),
-        const SizedBox(height: 10),
-        SmoothPageIndicator(
-          controller: _pageController,
-          count: 3,
-          effect: const ScrollingDotsEffect(
-            dotWidth: 6,
-            dotHeight: 6,
-            activeDotColor: AppColors.pBlackColor,
-            dotColor: AppColors.pMGreyColor,
-          ),
-        ),
-      ],
-    );
+          );
+        });
   }
 
-  Widget _buildCaloriesCard() {
+  Widget _buildCaloriesCard(data) {
     return Card(
       color: AppColors.pOrangeColor,
       elevation: 2,
@@ -77,12 +98,12 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                     child: CircularPercentIndicator(
                       radius: 55.0 * autoScale,
                       lineWidth: 7 * autoScale,
-                      percent: 0.3,
+                      percent: (data['calories'] * 0.001),
                       center: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ReusableText(
-                            text: "1700",
+                            text: "${(data['basegoal'] - data['calories'])}",
                             size: 30 * autoScale,
                             fontWeight: FontWeight.bold,
                             color: AppColors.pWhiteColor,
@@ -129,7 +150,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                                 fontWeight: FontWeight.bold,
                               ),
                               ReusableText(
-                                text: "1,680",
+                                text: "${data['basegoal']}",
                                 size: 14 * autoScale,
                               ),
                             ],
@@ -154,7 +175,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                                 fontWeight: FontWeight.bold,
                               ),
                               ReusableText(
-                                text: "300",
+                                text: "${data['calories']}",
                                 size: 14 * autoScale,
                               ),
                             ],
@@ -172,9 +193,62 @@ class _MealCardWidgetState extends State<MealCardWidget> {
     );
   }
 
+  void _showNumberInputDialog(BuildContext context) {
+    final TextEditingController numberController = TextEditingController();
 
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Enter a Base Goal'),
+          content: TextField(
+            controller: numberController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly, // Allow only numbers
+            ],
+            decoration: const InputDecoration(
+              hintText: 'Enter',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final String input = numberController.text;
+                if (input.isNotEmpty) {
+                  final int number = int.parse(input);
 
-  Widget _buildMacrosCard() {
+                  await FirebaseDatabase.instance
+                      .ref('users/${FirebaseAuth.instance.currentUser!.uid}/foodData')
+                      .update({
+                    'basegoal': number,
+                  }).whenComplete(
+                    () {
+                      Navigator.pop(context);
+                    },
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a number')),
+                  );
+                }
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildMacrosCard(data) {
     return Card(
       color: AppColors.pOrangeColor,
       elevation: 2,
@@ -196,17 +270,17 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                 children: [
                   Expanded(
                     child: _buildMacroIndicator(
-                        "Carbs", AppColors.pBlueColor, 0.6),
+                        "Carbs", AppColors.pBlueColor, data['carbs'] * 0.001),
                   ),
                   SizedBox(width: 10 * autoScale),
                   Expanded(
                     child: _buildMacroIndicator(
-                        "Fats", AppColors.pVioletColor, 0.4),
+                        "Fats", AppColors.pVioletColor, data['fats'] * 0.001),
                   ),
                   SizedBox(width: 10 * autoScale),
                   Expanded(
                     child: _buildMacroIndicator(
-                        "Protein", AppColors.pYellow, 0.8),
+                        "Protein", AppColors.pYellow, data['protein'] * 0.001),
                   ),
                 ],
               ),
@@ -246,8 +320,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
     );
   }
 
-
-  Widget _buildNutritionCard() {
+  Widget _buildNutritionCard(data) {
     return Card(
       color: AppColors.pOrangeColor,
       elevation: 2,
@@ -281,7 +354,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                             height: 10 * autoScale,
                             width: 120 * autoScale,
                             child: LinearProgressIndicator(
-                              value: 0.5,
+                              value: data['fats'] * 0.001,
                               backgroundColor: AppColors.pMGreyColor,
                               color: AppColors.pGreenColor,
                               minHeight: 8 * autoScale,
@@ -302,7 +375,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                             height: 10 * autoScale,
                             width: 120 * autoScale,
                             child: LinearProgressIndicator(
-                              value: 0.5,
+                              value: data['sodium'] * 0.001,
                               backgroundColor: AppColors.pMGreyColor,
                               color: AppColors.pGreenColor,
                               minHeight: 8 * autoScale,
@@ -323,7 +396,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                             height: 10 * autoScale,
                             width: 120 * autoScale,
                             child: LinearProgressIndicator(
-                              value: 0.5,
+                              value: data['cholesterol'] * 0.001,
                               backgroundColor: AppColors.pMGreyColor,
                               color: AppColors.pGreenColor,
                               minHeight: 8 * autoScale,
@@ -350,7 +423,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                             height: 10 * autoScale,
                             width: 120 * autoScale,
                             child: LinearProgressIndicator(
-                              value: 0.5,
+                              value: data['sugar'] * 0.001,
                               backgroundColor: AppColors.pMGreyColor,
                               color: AppColors.pGreenColor,
                               minHeight: 8 * autoScale,
@@ -371,7 +444,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                             height: 10 * autoScale,
                             width: 120 * autoScale,
                             child: LinearProgressIndicator(
-                              value: 0.5,
+                              value: data['fiber'] * 0.001,
                               backgroundColor: AppColors.pMGreyColor,
                               color: AppColors.pGreenColor,
                               minHeight: 8 * autoScale,
@@ -392,7 +465,7 @@ class _MealCardWidgetState extends State<MealCardWidget> {
                             height: 10 * autoScale,
                             width: 120 * autoScale,
                             child: LinearProgressIndicator(
-                              value: 0.5,
+                              value: data['carbs'] * 0.001,
                               backgroundColor: AppColors.pMGreyColor,
                               color: AppColors.pGreenColor,
                               minHeight: 8 * autoScale,

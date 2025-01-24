@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_switch/flutter_switch.dart';
 import 'package:flutter_toggle_tab/flutter_toggle_tab.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
@@ -267,34 +266,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildCustomSwitch({
-    required String label,
-    required bool value,
-    required Function(bool) onToggle,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        ReusableText(
-          text: label,
-          size: 20 * autoScale,
-          fontWeight: FontWeight.w600,
-        ),
-        FlutterSwitch(
-          width: 50.0 * autoScale,
-          height: 30.0 * autoScale,
-          toggleSize: 25.0 * autoScale,
-          value: value,
-          borderRadius: 20.0 * autoScale,
-          padding: 2.0 * autoScale,
-          activeColor: AppColors.pGreenColor,
-          inactiveColor: AppColors.pMGreyColor,
-          onToggle: onToggle,
-        ),
-      ],
-    );
-  }
-
+  
   Widget _buildAccountInfo(String title, Widget value, Color valueColor) {
     return Padding(
       padding: EdgeInsets.symmetric(

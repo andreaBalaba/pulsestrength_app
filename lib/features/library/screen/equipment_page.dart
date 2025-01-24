@@ -6,11 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
-import '../../../utils/global_variables.dart';
 
 class EquipmentPage extends StatefulWidget {
   String data;

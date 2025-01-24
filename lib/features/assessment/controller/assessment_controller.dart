@@ -114,7 +114,7 @@ class AssessmentController extends GetxController {
 
   final List<String> whereDoExerciseChoices = [
     "Home",
-    "Bed",
+    "Bedroom",
     "Yoga mat",
     "Gym",
   ];

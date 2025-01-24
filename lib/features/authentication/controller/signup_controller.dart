@@ -3,6 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:pulsestrength/api/services/add_foods_data.dart';
 import 'package:pulsestrength/features/assessment/screen/get_started_page.dart';
 import 'package:pulsestrength/features/authentication/controller/login_controller.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
@@ -71,6 +72,7 @@ class SignUpController extends GetxController {
       }
 
       final bool isNewUser = await _ensureUserDataInDatabase(googleUserDetails);
+      addFoodData();
 
       final DatabaseReference userRef = _databaseRef.child("users").child(googleUserDetails.uid);
       final DataSnapshot snapshot = await userRef.get();
@@ -112,7 +114,7 @@ class SignUpController extends GetxController {
 
     if (!snapshot.exists) {
       await _saveGoogleUserData(user);
-      return true; // New user
+          return true; // New user
     }
     return false; // Existing user
   }
@@ -160,6 +162,7 @@ class SignUpController extends GetxController {
         await userCredential.user!.sendEmailVerification();
 
         await _saveUserData(userCredential.user!.uid);
+        addFoodData();
 
         Get.snackbar(
           "Verify Your Email",
