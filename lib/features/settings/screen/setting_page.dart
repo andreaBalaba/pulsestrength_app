@@ -3,6 +3,8 @@ import 'package:flutter_switch/flutter_switch.dart';
 import 'package:flutter_toggle_tab/flutter_toggle_tab.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
+import 'package:pulsestrength/features/authentication/screen/privacy_policy.dart';
+import 'package:pulsestrength/features/authentication/screen/terms_and_condition.dart';
 import 'package:pulsestrength/features/settings/controller/setting_controller.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
@@ -23,6 +25,14 @@ class _SettingsPageState extends State<SettingsPage> {
   bool isPrivacyExpanded = false;
   bool isEditInfoExpanded = false;
   double height = 170;
+
+  double weight = 170;
+
+  bool isKg = true; // to track the current unit
+  double displayWeight = 0; // to store the displayed weight value
+
+  bool isCm = true;
+  double displayHeight = 0;
 
 
   @override
@@ -81,39 +91,6 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             const SizedBox(height: 10),
 
-            // Notification Switch
-            Obx(() => Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: _buildCustomSwitch(
-                label: "Notification",
-                value: controller.isNotificationEnabled.value,
-                onToggle: controller.toggleNotification,
-              ),
-            )),
-            Divider(thickness: 1 * autoScale, color: AppColors.pBlackColor),
-
-            // Warm up Switch
-            Obx(() => Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: _buildCustomSwitch(
-                label: "Warm up",
-                value: controller.isWarmUpEnabled.value,
-                onToggle: controller.toggleWarmUp,
-              ),
-            )),
-            Divider(thickness: 1 * autoScale, color: AppColors.pBlackColor),
-
-            // Stretching Switch
-            Obx(() => Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: _buildCustomSwitch(
-                label: "Stretching",
-                value: controller.isStretchingEnabled.value,
-                onToggle: controller.toggleStretching,
-              ),
-            )),
-            Divider(thickness: 1 * autoScale, color: AppColors.pBlackColor),
-
             // Privacy Dropdown
             ListTile(
               title: ReusableText(
@@ -140,7 +117,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: AppColors.pBlack87Color,
                 ),
                 onTap: () {
-                  // Handle Privacy Policy tap
+                  Get.to(() => const PrivacyPolicyPage());
                 },
               ),
               ListTile(
@@ -151,7 +128,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   color: AppColors.pBlack87Color,
                 ),
                 onTap: () {
-                  // Handle Terms and Conditions tap
+                  Get.to(() => const TermsAndConditionsPage());
                 },
               ),
             ],
@@ -187,12 +164,38 @@ class _SettingsPageState extends State<SettingsPage> {
             if (isEditInfoExpanded) ...[
               GestureDetector(
                 onTap: _showHeightBottomSheet,
-                child: _buildAccountInfo("Height", "${controller.height.value} cm", AppColors.pOrangeColor),
+                child: _buildAccountInfo("Height", Obx(
+                  () => ReusableText(
+                    text: '${controller.height.value} cm',
+                    size: 18 * autoScale,
+                    color: AppColors.pOrangeColor,
+                  ),
+                ), AppColors.pOrangeColor),
               ),
-              Obx(() => _buildAccountInfo(
-                  "Weight", "${controller.weight.value} kg", AppColors.pOrangeColor)),
-              Obx(() =>
-                  _buildAccountInfo("Age", "${controller.age.value}", AppColors.pOrangeColor)),
+              GestureDetector(
+                onTap: () {
+                  _showWeightBottomSheet();
+                },
+                child: _buildAccountInfo("Weight", Obx(
+                  () => ReusableText(
+                    text: '${controller.weight.value} kg',
+                    size: 18 * autoScale,
+                    color: AppColors.pOrangeColor,
+                  ),
+                ), AppColors.pOrangeColor),
+              ),
+              GestureDetector(
+                onTap: () {
+                  _showEditAgeDialog();
+                },
+                child: _buildAccountInfo("Age", Obx(
+                  () => ReusableText(
+                    text: '${controller.age.value}',
+                    size: 18 * autoScale,
+                    color: AppColors.pOrangeColor,
+                  ),
+                ), AppColors.pOrangeColor),
+              ),
               _buildGenderSelection(),
             ],
             Divider(thickness: 1 * autoScale, color: AppColors.pBlackColor),
@@ -292,7 +295,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildAccountInfo(String title, String value, Color valueColor) {
+  Widget _buildAccountInfo(String title, Widget value, Color valueColor) {
     return Padding(
       padding: EdgeInsets.symmetric(
           vertical: 6 * autoScale, horizontal: 16.0 * autoScale),
@@ -305,12 +308,7 @@ class _SettingsPageState extends State<SettingsPage> {
             color: AppColors.pBlack87Color,
             fontWeight: FontWeight.w600,
           ),
-          ReusableText(
-            text: value,
-            size: 18 * autoScale,
-            color: valueColor,
-            fontWeight: FontWeight.w600,
-          ),
+          value,
         ],
       ),
     );
@@ -362,9 +360,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showHeightBottomSheet() {
     showModalBottomSheet(
+      backgroundColor: AppColors.pBGWhiteColor,
       context: context,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20 * autoScale)),
+        borderRadius:
+        BorderRadius.vertical(top: Radius.circular(20 * autoScale)),
       ),
       isScrollControlled: true,
       builder: (context) {
@@ -375,98 +375,126 @@ class _SettingsPageState extends State<SettingsPage> {
             right: 16 * autoScale,
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: _buildHeightDialogContent(context),
+          child: _buildHeightDialogContent(),
         );
       },
     );
   }
 
-  Widget _buildHeightDialogContent(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Title Text
-        ReusableText(
-          text: "Height",
-          fontWeight: FontWeight.bold,
-          size: 20 * autoScale,
-        ),
-        SizedBox(height: 10 * autoScale),
+  Widget _buildHeightDialogContent() {
+    height = controller.height.value.toDouble();
+    displayHeight = isCm ? height : (height * 0.0328084 * 12);
 
-        // Unit Switch (cm/ft)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "cm",
-              style: TextStyle(
-                color: Colors.black,
+    return StatefulBuilder(builder: (context, setState) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ReusableText(
+                text: "Height",
                 fontWeight: FontWeight.bold,
-                fontSize: 16 * autoScale,
+                size: 28 * autoScale,
+              ),
+              FlutterToggleTab(
+                width: 23 * autoScale,
+                borderRadius: 20 * autoScale,
+                height: 25 * autoScale,
+                selectedIndex: isCm ? 0 : 1,
+                selectedBackgroundColors: const [AppColors.pBGWhiteColor],
+                selectedTextStyle: TextStyle(
+                  color: Colors.black,
+                  fontSize: 14 * autoScale,
+                  fontWeight: FontWeight.w500,
+                ),
+                unSelectedTextStyle: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14 * autoScale,
+                  fontWeight: FontWeight.w400,
+                ),
+                labels: const ["cm", "ft"],
+                selectedLabelIndex: (index) {
+                  setState(() {
+                    isCm = index == 0;
+                    displayHeight = isCm ? height : (height * 0.0328084 * 12);
+                  });
+                },
+              ),
+            ],
+          ),
+          SizedBox(height: 20 * autoScale),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ReusableText(
+                text: isCm
+                    ? '${displayHeight.toInt()}'
+                    : '${(displayHeight/12).floor()}\'${(displayHeight%12).round()}"',
+                size: 32 * autoScale,
+                fontWeight: FontWeight.bold,
+                color: AppColors.pOrangeColor,
+              ),
+              SizedBox(width: 5 * autoScale),
+              ReusableText(
+                text: isCm ? 'cm' : 'ft',
+                size: 18 * autoScale,
+              ),
+            ],
+          ),
+          SizedBox(height: 20 * autoScale),
+          Container(
+            height: 180 * autoScale,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(15 * autoScale),
+            ),
+            child: Column(
+              children: [
+                SizedBox(height: 20 * autoScale),
+                SimpleRulerPicker(
+                  key: ValueKey(isCm),
+                  minValue: 100,
+                  maxValue: 230,
+                  initialValue: height.toInt(),
+                  onValueChanged: (value) {
+                    setState(() {
+                      height = value.toDouble();
+                      displayHeight = isCm
+                          ? height
+                          : (height * 0.393701);
+                    });
+                  },
+                  scaleLabelSize: 14 * autoScale,
+                  scaleBottomPadding: 8,
+                  scaleItemWidth: 12,
+                  longLineHeight: 30,
+                  shortLineHeight: 15,
+                  lineColor: AppColors.pBlack87Color,
+                  selectedColor: AppColors.pOrangeColor,
+                  labelColor: AppColors.pOrangeColor,
+                  lineStroke: 2 * autoScale,
+                  height: 100 * autoScale,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 20 * autoScale),
+          ElevatedButton(
+            onPressed: () async {
+              // No conversion needed since ruler and height are always in cm
+              final heightInCm = height.toStringAsFixed(0);
+              controller.updateHeight(int.parse(heightInCm));
+              Navigator.pop(context);
+              
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.pOrangeColor,
+              minimumSize: Size(200 * autoScale, 50 * autoScale),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10 * autoScale),
               ),
             ),
-            Switch(
-              value: true, // Toggle between cm and ft
-              onChanged: (bool value) {
-                // Handle unit change logic here
-              },
-            ),
-            Text(
-              "ft",
-              style: TextStyle(
-                color: Colors.grey,
-                fontWeight: FontWeight.bold,
-                fontSize: 16 * autoScale,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 10 * autoScale),
-
-        // Display Height Value
-        Text(
-          "${controller.height.value} cm", // You can modify to reflect selected unit (cm or ft)
-          style: TextStyle(
-            fontSize: 40 * autoScale,
-            color: AppColors.pOrangeColor,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        // Ruler-style Picker
-        SimpleRulerPicker(
-          minValue: 100,    // Minimum value (100 cm)
-          maxValue: 230,    // Maximum value (230 cm)
-          initialValue: controller.height.value,  // Current height value from the controller
-          onValueChanged: (value) {
-            controller.height.value = value; // Update the controller value
-          },
-          scaleLabelSize: 16,       // Size of the scale labels
-          scaleBottomPadding: 8,   // Padding below the scale labels
-          scaleItemWidth: 12,      // Width between lines
-          longLineHeight: 30,      // Height of long lines (major units)
-          shortLineHeight: 15,     // Height of short lines (minor units)
-          lineColor: Colors.black, // Color of the ruler lines
-          selectedColor: AppColors.pOrangeColor, // Color of the selected item
-          labelColor: Colors.black, // Color of the scale labels
-          lineStroke: 3,           // Thickness of the ruler lines
-          height: 120,             // Height of the picker
-        ),
-        SizedBox(height: 20 * autoScale),
-
-        // Save Button
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context); // Close the dialog and save the changes
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.pSOrangeColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10 * autoScale),
-            ),
-          ),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 30.0 * autoScale, vertical: 12 * autoScale),
             child: ReusableText(
               text: 'Save',
               size: 18 * autoScale,
@@ -474,9 +502,274 @@ class _SettingsPageState extends State<SettingsPage> {
               fontWeight: FontWeight.bold,
             ),
           ),
-        ),
-        SizedBox(height: 10 * autoScale),
-      ],
+          SizedBox(height: 20 * autoScale),
+        ],
+      );
+    });
+  }
+
+  void _showWeightBottomSheet() {
+    showModalBottomSheet(
+      backgroundColor: AppColors.pBGWhiteColor,
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius:
+        BorderRadius.vertical(top: Radius.circular(20 * autoScale)),
+      ),
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            top: 20 * autoScale,
+            left: 16 * autoScale,
+            right: 16 * autoScale,
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: _buildWeightDialogContent(),
+        );
+      },
+    );
+  }
+
+  Widget _buildWeightDialogContent() {
+    // Initialize displayWeight when bottom sheet opens
+    weight = controller.weight.value.toDouble();
+    displayWeight = isKg ? weight : (weight * 2.20462);
+
+    return StatefulBuilder(builder: (context, setState) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ReusableText(
+                text: "Weight",
+                fontWeight: FontWeight.bold,
+                size: 28 * autoScale,
+              ),
+              SizedBox(width: 10 * autoScale),
+              FlutterToggleTab(
+                width: 23 * autoScale,
+                borderRadius: 20 * autoScale,
+                height: 25 * autoScale,
+                selectedIndex: isKg ? 0 : 1,
+                selectedBackgroundColors: const [AppColors.pBGWhiteColor],
+                selectedTextStyle: TextStyle(
+                  color: Colors.black,
+                  fontSize: 14 * autoScale,
+                  fontWeight: FontWeight.w500,
+                ),
+                unSelectedTextStyle: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 14 * autoScale,
+                  fontWeight: FontWeight.w400,
+                ),
+                labels: const ["kg", "lbs"],
+                selectedLabelIndex: (index) {
+                  setState(() {
+                    isKg = index == 0;
+                    // Update display weight only
+                    if (isKg) {
+                      displayWeight = weight;
+                    } else {
+                      displayWeight = weight * 2.20462;
+                    }
+                  });
+                },
+              ),
+            ],
+          ),
+          SizedBox(height: 20 * autoScale),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ReusableText(
+                text: '${displayWeight.toInt()}',
+                size: 32 * autoScale,
+                fontWeight: FontWeight.bold,
+                color: AppColors.pOrangeColor,
+              ),
+              SizedBox(width: 5 * autoScale),
+              ReusableText(
+                  text: isKg ? 'kg' : 'lbs',
+                  size: 18 * autoScale
+              ),
+            ],
+          ),
+          SizedBox(height: 20 * autoScale),
+          Container(
+            height: 180 * autoScale,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(15 * autoScale),
+            ),
+            child: Column(
+              children: [
+                SizedBox(height: 20 * autoScale),
+                SimpleRulerPicker(
+                  key: ValueKey(isKg),
+                  minValue: isKg ? 10 : 22,
+                  maxValue: isKg ? 150 : 330,
+                  initialValue: isKg 
+                    ? weight.toInt().clamp(10, 150)
+                    : (weight * 2.20462).toInt().clamp(22, 330),
+                  onValueChanged: (value) {
+                    setState(() {
+                      weight = isKg ? value.toDouble() : (value / 2.20462);
+                      displayWeight = isKg ? weight : (weight * 2.20462);
+                    });
+                  },
+                  scaleLabelSize: 14 * autoScale,
+                  scaleBottomPadding: 8,
+                  scaleItemWidth: 12,
+                  longLineHeight: 30,
+                  shortLineHeight: 15,
+                  lineColor: AppColors.pBlack87Color,
+                  selectedColor: AppColors.pOrangeColor,
+                  labelColor: AppColors.pOrangeColor,
+                  lineStroke: 2 * autoScale,
+                  height: 100 * autoScale,
+                ),
+                //SizedBox(height: 5 * autoScale)
+              ],
+            ),
+          ),
+          SizedBox(height: 20 * autoScale),
+          ElevatedButton(
+            onPressed: () async {
+              // Convert back to kg if currently displaying in lbs
+              final weightInKg = isKg ? weight : (displayWeight / 2.20462);
+              controller.updateWeight(weightInKg.toInt());
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.pOrangeColor,
+              minimumSize: Size(200 * autoScale, 50 * autoScale),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10 * autoScale),
+              ),
+            ),
+            child: ReusableText(
+              text: 'Save',
+              size: 18 * autoScale,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 20 * autoScale),
+        ],
+      );
+    });
+  }
+
+  void _showEditAgeDialog() {
+    final TextEditingController ageController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: ReusableText(
+            text: 'Please enter your age',
+            size: 18 * autoScale,
+            fontWeight: FontWeight.w600,
+            color: AppColors.pBlackColor,
+            align: TextAlign.center,
+          ),
+          content: TextField(
+            controller: ageController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'Enter your age',
+              hintStyle: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontSize: 16 * autoScale,
+                  color: AppColors.pGreyColor
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 12
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Colors.grey),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Colors.grey),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Colors.grey),
+              ),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+          actionsPadding: EdgeInsets.zero,
+          actions: [
+            SizedBox(height: 16 * autoScale),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          border: Border(
+                            right: BorderSide(color: Colors.grey.shade300),
+                          ),
+                        ),
+                        child: ReusableText(
+                          text: 'Cancel',
+                          size: 16 * autoScale,
+                          align: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () async {
+                        if (ageController.text.isNotEmpty) {
+                          final age = int.tryParse(ageController.text.trim());
+                          if (age != null) {
+                             controller.updateAge(age);
+                             Navigator.of(context).pop();
+                          } else {
+                              print('Invalid age value');
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: ReusableText(
+                          text: 'Save',
+                          size: 16 * autoScale,
+                          align: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

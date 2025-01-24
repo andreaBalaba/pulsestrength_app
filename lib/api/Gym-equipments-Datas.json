@@ -107,10 +107,7 @@
             "Overextending the lower back, leading to a risk of injury.",
             "Using too much weight, resulting in poor form or overcompensation with other muscle groups."
           ],
-          "video_tutorial": [
-            "https://www.youtube.com/watch?v=V7p_DmkYLZw",
-            "https://www.youtube.com/watch?v=fuPFq2EYswE"
-          ]
+          "video_tutorial": "https://www.youtube.com/watch?v=fuPFq2EYswE"
         }
       ]
     },
@@ -1007,7 +1004,7 @@
           ],
           "overview": "The Hip Abductor Machine helps strengthen the outer hip muscles, including the gluteus medius, gluteus minimus, and tensor fasciae latae (TFL). As a beginner, you’ll focus on mastering the form and engaging the correct muscles while building lower body strength.",
           "basics_and_alternatives": {
-            "alternative_exercises": "Standing Band Lateral Walks, Lateral Lunges, Clamshells, Side-Lying Leg Lifts, Cable Hip Abductions with ankle attachments.",
+            "alternative": "Standing Band Lateral Walks, Lateral Lunges, Clamshells, Side-Lying Leg Lifts, Cable Hip Abductions with ankle attachments.",
             "goal": "Learn the correct form and control the movement while gradually increasing resistance."
           },
           "correct_execution": [
@@ -1046,7 +1043,7 @@
           ],
           "overview": "As an intermediate, your goal is to increase resistance and challenge the muscle engagement. Focus on improving both form and power while pushing your limits.",
           "basics_and_alternatives": {
-            "alternative_exercises": "Cross-lateral Band Walks, Lateral Lunges with Dumbbells, Clamshells with Resistance Bands, Cable Hip Abductions.",
+            "alternative": "Cross-lateral Band Walks, Lateral Lunges with Dumbbells, Clamshells with Resistance Bands, Cable Hip Abductions.",
             "goal": "Increase resistance while maintaining control over the movement and maximizing muscle activation."
           },
           "correct_execution": [
@@ -1084,7 +1081,7 @@
           ],
           "overview": "At the advanced level, you’re pushing for maximum strength and control. Focus on heavy resistance and ensuring perfect form for optimal results.",
           "basics_and_alternatives": {
-            "alternative_exercises": "Weighted Lateral Lunges, Cable Machine Hip Abductions, Resistance Band Lateral Walks.",
+            "alternative": "Weighted Lateral Lunges, Cable Machine Hip Abductions, Resistance Band Lateral Walks.",
             "goal": "Maximize resistance while maintaining proper technique and controlling the movement."
           },
           "correct_execution": [

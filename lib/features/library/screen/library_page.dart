@@ -14,7 +14,8 @@ class LibraryPage extends StatefulWidget {
 
 class _LibraryPageState extends State<LibraryPage> with AutomaticKeepAliveClientMixin {
   final LibraryController controller = Get.put(LibraryController());
-  bool _showShadow = false; // Local variable to track shadow status
+  final TextEditingController searchController = TextEditingController();
+  bool _showShadow = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -32,6 +33,7 @@ class _LibraryPageState extends State<LibraryPage> with AutomaticKeepAliveClient
     });
 
     controller.scrollController.addListener(_scrollListener);
+    controller.loadSavedEquipment(); // Load saved equipment on initialization
   }
 
   void _scrollListener() {
@@ -48,6 +50,7 @@ class _LibraryPageState extends State<LibraryPage> with AutomaticKeepAliveClient
 
   @override
   void dispose() {
+    searchController.dispose();
     controller.scrollController.removeListener(_scrollListener);
     super.dispose();
   }
@@ -60,99 +63,162 @@ class _LibraryPageState extends State<LibraryPage> with AutomaticKeepAliveClient
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
       appBar: AppBar(
-        title: ReusableText(
-          text: 'Equipment Library',
-          fontWeight: FontWeight.bold,
-          size: 20 * autoScale,
+        title: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ReusableText(
+              text: 'Equipment Library',
+              fontWeight: FontWeight.bold,
+              size: 20 * autoScale,
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.0 * autoScale),
+              decoration: BoxDecoration(
+                color: AppColors.pLightGreyColor,
+                borderRadius: BorderRadius.circular(24.0),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search, color: AppColors.pGreyColor),
+                  const SizedBox(width: 5),
+                  Expanded(
+                    child: TextField(
+                      controller: searchController,
+                      onChanged: controller.updateSearchQuery,
+                      cursorColor: AppColors.pBlackColor,
+                      decoration: const InputDecoration(
+                        hintText: 'Search equipment',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: Colors.black54, fontFamily: 'Poppins'),
+                      ),
+                    ),
+                  ),
+                  Obx(() => controller.searchQuery.value.isNotEmpty
+                      ? GestureDetector(
+                          onTap: () {
+                            searchController.clear();
+                            controller.updateSearchQuery('');
+                          },
+                          child: const Icon(Icons.close, color: AppColors.pGreyColor),
+                        )
+                      : const SizedBox.shrink()),
+                ],
+              ),
+            ),
+          ],
         ),
         backgroundColor: AppColors.pBGWhiteColor,
         elevation: _showShadow ? 6.0 : 0.0,
         shadowColor: Colors.black26,
-        surfaceTintColor: AppColors.pNoColor,
         centerTitle: true,
+        toolbarHeight: 120.0 * autoScale,
+        surfaceTintColor: AppColors.pNoColor,
       ),
-      body: ListView.builder(
-        controller: controller.scrollController,
-        padding: EdgeInsets.symmetric(
-          horizontal: 20.0 * autoScale,
-          vertical: 8.0 * autoScale,
-        ),
-        itemCount: controller.equipmentList.length,
-        itemBuilder: (context, index) {
-          final equipment = controller.equipmentList[index];
-          return Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.0 * autoScale),
-            child: GestureDetector(
-              onTap: () {
-                Get.to(() => EquipmentDetailsPage(
-                  imagePath: equipment.imagePath,
-                  name: equipment.name,
-                  level: equipment.experienceLevel,
-                  duration: equipment.duration,
-                  calories: equipment.calories,
-                  description: equipment.description,
-                ));
-              },
-              child: Container(
-                height: 120 * autoScale,
-                decoration: BoxDecoration(
-                  color: controller.getCategoryColor(equipment.category),
-                  borderRadius: BorderRadius.circular(12.0 * autoScale),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black26,
-                      blurRadius: 3 * autoScale,
-                      offset: Offset(0, 3 * autoScale),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(width: 5 * autoScale),
-                    Padding(
-                      padding: EdgeInsets.all(8.0 * autoScale),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0 * autoScale),
-                        child: Image.asset(
-                          equipment.imagePath,
-                          width: 80 * autoScale,
-                          height: 80 * autoScale,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 5 * autoScale),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(right: 8.0 * autoScale, top: 16 * autoScale, bottom: 16 * autoScale),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            ReusableText(
-                              text: equipment.name,
-                              fontWeight: FontWeight.bold,
-                              size: 18.0 * autoScale,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            SizedBox(height: 4 * autoScale),
-                            ReusableText(
-                              text: 'See details',
-                              color: AppColors.pBlack87Color,
-                              size: 12.0 * autoScale,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      body: Obx(() {
+        final listToShow = controller.searchQuery.value.isNotEmpty
+            ? controller.filteredEquipmentList
+            : controller.savedEquipmentList;
+
+        if (listToShow.isEmpty) {
+          return Center(
+            child: ReusableText(
+              text: controller.searchQuery.value.isEmpty
+                  ? 'No saved equipment'
+                  : 'No results found',
+              size: 18 * autoScale,
+              color: AppColors.pGreyColor,
             ),
           );
-        },
-      ),
+        }
+
+        return ListView.builder(
+          controller: controller.scrollController,
+          padding: EdgeInsets.symmetric(
+            horizontal: 20.0 * autoScale,
+            vertical: 8.0 * autoScale,
+          ),
+          itemCount: listToShow.length,
+          itemBuilder: (context, index) {
+            final equipment = listToShow[index];
+            return Padding(
+              padding: EdgeInsets.symmetric(vertical: 12.0 * autoScale),
+              child: GestureDetector(
+                onTap: () {
+                  Get.to(() => EquipmentPage(data: equipment.name));
+                },
+                child: Container(
+                  height: 120 * autoScale,
+                  decoration: BoxDecoration(
+                    color: AppColors.pOrangeColor,
+                    borderRadius: BorderRadius.circular(12.0 * autoScale),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 3 * autoScale,
+                        offset: Offset(0, 3 * autoScale),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 5 * autoScale),
+                      Padding(
+                        padding: EdgeInsets.all(8.0 * autoScale),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0 * autoScale),
+                          child: Image.network(
+                            equipment.image,
+                            width: 80 * autoScale,
+                            height: 80 * autoScale,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 5 * autoScale),
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(right: 8.0 * autoScale, top: 16 * autoScale, bottom: 16 * autoScale),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              ReusableText(
+                                text: equipment.name,
+                                fontWeight: FontWeight.bold,
+                                size: 18.0 * autoScale,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              SizedBox(height: 4 * autoScale),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  ReusableText(
+                                    text: 'See details',
+                                    color: AppColors.pBlack87Color,
+                                    size: 12.0 * autoScale,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.save, color: Colors.white),
+                                    onPressed: () {
+                                      controller.saveEquipment(equipment);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      }),
     );
   }
 }

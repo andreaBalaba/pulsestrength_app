@@ -41,24 +41,32 @@ class DailyTask {
 // Updated Equipment Model
 class Equipment {
   final String name;
-  final String imagePath;
-  final String category;
-  final String description;
-  final String experienceLevel;
-  final String duration; // Duration for using the equipment
-  final String calories; // Calories burned using the equipment
+  final String image;
+  final List<dynamic> levels;
   bool isTapped;
 
   Equipment({
     required this.name,
-    required this.imagePath,
-    required this.category,
-    required this.description,
-    this.experienceLevel = "",
-    this.duration = "N/A", // Optional duration
-    this.calories = "N/A", // Optional calories
+    required this.image,
+    required this.levels,
     this.isTapped = false,
   });
+
+  factory Equipment.fromJson(Map<String, dynamic> json) {
+    return Equipment(
+      name: json['name'],
+      image: json['image'],
+      levels: json['levels'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'image': image,
+      // Add other properties you want to save
+    };
+  }
 }
 
 // Sample Data Model for Meal

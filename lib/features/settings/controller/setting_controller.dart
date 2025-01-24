@@ -16,9 +16,7 @@ class SettingsController extends GetxController {
   final AssessmentController assessmentController = Get.put(AssessmentController());
 
 
-  final RxBool isNotificationEnabled = false.obs;
-  final RxBool isWarmUpEnabled = false.obs;
-  final RxBool isStretchingEnabled = false.obs;
+
   final RxString selectedGender = 'Female'.obs;
 
   // User data
@@ -96,38 +94,6 @@ class SettingsController extends GetxController {
     }
   }
 
-
-  // Toggle methods for each setting
-  void toggleNotification(bool value) {
-    isNotificationEnabled.value = value;
-    Get.snackbar(
-      'Settings',
-      'Notifications ${value ? 'enabled' : 'disabled'}',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.pMGreyColor,
-    );
-  }
-
-  void toggleWarmUp(bool value) {
-    isWarmUpEnabled.value = value;
-    Get.snackbar(
-      'Settings',
-      'Warm up ${value ? 'enabled' : 'disabled'}',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.pMGreyColor,
-    );
-  }
-
-  void toggleStretching(bool value) {
-    isStretchingEnabled.value = value;
-    Get.snackbar(
-      'Settings',
-      'Stretching ${value ? 'enabled' : 'disabled'}',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.pMGreyColor,
-    );
-  }
-
   // Method to select gender
   void selectGender(String gender) {
     selectedGender.value = gender;
@@ -135,6 +101,39 @@ class SettingsController extends GetxController {
     Get.snackbar(
       'Settings',
       'Gender set to $gender',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.pMGreyColor,
+    );
+  }
+
+  void updateHeight(int heightInCm) {
+    height.value = heightInCm;
+    editInformation();
+    Get.snackbar(
+      'Settings',
+      'Height updated to $heightInCm cm',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.pMGreyColor,
+    );
+  }
+
+  void updateWeight(int weightInKg) {
+    weight.value = weightInKg;
+    editInformation();
+    Get.snackbar(
+      'Settings',
+      'Weight updated to $weightInKg kg',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: AppColors.pMGreyColor,
+    );
+  }
+
+  void updateAge(int ageInYears) {
+    age.value = ageInYears;
+    editInformation();
+    Get.snackbar(
+      'Settings',
+      'Age updated to $ageInYears years',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: AppColors.pMGreyColor,
     );

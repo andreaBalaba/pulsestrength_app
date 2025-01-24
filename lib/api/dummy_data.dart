@@ -101,7 +101,7 @@ class DailyTasksData {
   }
 }
 
-class EquipmentData {
+/**class EquipmentData {
   static List<Equipment> getEquipmentList() {
     return [
       Equipment(
@@ -149,7 +149,7 @@ class EquipmentData {
       // Add more items as needed
     ];
   }
-}
+}*/
 
 class MealData {
   final List<MealHistory> mealHistoryList = [

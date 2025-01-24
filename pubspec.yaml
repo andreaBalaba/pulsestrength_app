@@ -40,11 +40,11 @@ dependencies:
   animate_do: ^3.3.4
   smooth_page_indicator: ^1.2.0+3
   shared_preferences: ^2.3.2
-  video_player: ^2.5.0
+  video_player: ^2.9.2
   firebase_core:
-  firebase_auth: ^4.5.0
+  firebase_auth:
   cloud_firestore:
-  firebase_database: ^10.2.0
+  firebase_database:
   flutter_switch: ^0.3.2
   simple_ruler_picker: ^0.1.1
   flutter_toggle_tab: ^1.4.1
@@ -54,7 +54,7 @@ dependencies:
   fl_chart:
   intl:
   google_sign_in:
-  connectivity_plus: ^4.0.0
+  connectivity_plus:
   http: ^1.2.2
   provider: ^6.1.2
   google_generative_ai: ^0.4.6
@@ -63,8 +63,9 @@ dependencies:
   flutter_gemini: ^2.0.4
   image_picker:
   dash_chat_2: ^0.0.20
-  uuid: ^4.5.1
-
+  flutter_tts:
+  url_launcher:
+  audioplayers: ^6.1.0
 
 
 dev_dependencies:
@@ -196,9 +197,12 @@ flutter:
     - assets/images/peeps.png
     - assets/images/cfire.png
     - assets/images/why_quest.png
+    - lib/api/
     - lib/api/Gym-equipments-Datas.json
     - lib/api/Hit_it_right_plan.json
     - lib/api/Personalized_Workout_Plan.json
+    - assets/sounds/
+    - assets/sounds/beep.mp3
 
 
 
