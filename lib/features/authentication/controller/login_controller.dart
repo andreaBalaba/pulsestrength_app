@@ -96,6 +96,9 @@ class LoginController extends GetxController {
         case 'too-many-requests':
           errorMessage = 'Too many failed attempts. Please try again later.';
           break;
+        case 'email-not-verified':
+          errorMessage = 'Your email is not verified. Please check your inbox and verify your email.';
+          break;
         default:
           errorMessage = 'An error occurred. Please try again.';
       }

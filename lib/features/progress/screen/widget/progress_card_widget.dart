@@ -1,12 +1,23 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pulsestrength/features/progress/controller/progress_controller.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class ProgressCardsWidget extends StatefulWidget {
-  const ProgressCardsWidget({super.key});
+  int sleep;
+  int calories;
+  int water;
+  int steps;
+  ProgressCardsWidget(
+      {super.key,
+      required this.sleep,
+      required this.calories,
+      required this.steps,
+      required this.water});
 
   @override
   State<ProgressCardsWidget> createState() => _ProgressCardsWidgetState();
@@ -15,11 +26,10 @@ class ProgressCardsWidget extends StatefulWidget {
 class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
   final ProgressController controller = Get.put(ProgressController());
   double autoScale = Get.width / 360;
-  int waterIntake = 0;
+
   int tempWaterIntake = 0; // Temporary variable for dialog
-  int sleepHours = 0;
+
   int tempSleepHours = 0; // Temporary variable for sleep dialog
-  int caloriesBurned = 300;
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +43,7 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
               Expanded(
                 child: _ProgressCard(
                   title: "Calories",
-                  value: "$caloriesBurned",
+                  value: "${widget.calories}",
                   unit: "Kcal",
                   color: AppColors.pOrangeColor,
                   imagePath: IconAssets.pCaloriesIcon,
@@ -43,8 +53,8 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
               Expanded(
                 child: _ProgressCard(
                   title: "Steps",
-                  value: "${controller.stepCount.value}",
-                  unit: controller.stepCount.value <= 1 ? "Step" : "Steps",
+                  value: "${widget.steps}",
+                  unit: widget.steps <= 1 ? "Step" : "Steps",
                   color: AppColors.pLightGreenColor,
                   imagePath: IconAssets.pStepIcon,
                 ),
@@ -58,7 +68,7 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
               Expanded(
                 child: _ProgressCard(
                   title: "Water",
-                  value: "$waterIntake/16",
+                  value: "${widget.water}/16",
                   unit: "Glass",
                   color: AppColors.pLightBlueColor,
                   imagePath: IconAssets.pWaterIcon,
@@ -70,8 +80,8 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
               Expanded(
                 child: _ProgressCard(
                   title: "Sleep",
-                  value: "$sleepHours",
-                  unit: sleepHours <= 1 ? "Hour" : "Hours",
+                  value: "${widget.sleep}",
+                  unit: widget.sleep <= 1 ? "Hour" : "Hours",
                   color: AppColors.pLightPurpleColor,
                   imagePath: IconAssets.pSleepIcon,
                   showPlusIcon: true,
@@ -85,10 +95,8 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
     );
   }
 
-
-
   void _showWaterIntakeDialog() {
-    tempWaterIntake = waterIntake;
+    tempWaterIntake = widget.water;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -107,7 +115,8 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10.0),
                     child: ReusableText(
-                      text: "Tap the glasses to select how many you've had today.",
+                      text:
+                          "Tap the glasses to select how many you've had today.",
                       size: 14 * autoScale,
                       color: Colors.black54,
                       align: TextAlign.center,
@@ -131,7 +140,9 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
                               alignment: Alignment.center,
                               children: [
                                 Image.asset(
-                                  index < tempWaterIntake ? IconAssets.pGlassWaterIcon : IconAssets.pGlassIcon,
+                                  index < tempWaterIntake
+                                      ? IconAssets.pGlassWaterIcon
+                                      : IconAssets.pGlassIcon,
                                   width: 40,
                                   height: 50,
                                 ),
@@ -152,9 +163,11 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
                   Align(
                     alignment: Alignment.bottomRight,
                     child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          waterIntake = tempWaterIntake;
+                      onPressed: () async {
+                        await FirebaseDatabase.instance
+                            .ref('users/${FirebaseAuth.instance.currentUser!.uid}/Weekly/${DateTime.now().weekday.toString()}')
+                            .update({
+                          'water': tempWaterIntake,
                         });
                         Navigator.pop(context);
                       },
@@ -183,7 +196,7 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
   }
 
   void _showSleepHoursDialog() {
-    tempSleepHours = sleepHours;
+    tempSleepHours = widget.sleep;
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -247,9 +260,11 @@ class _ProgressCardsWidgetState extends State<ProgressCardsWidget> {
                   Align(
                     alignment: Alignment.bottomRight,
                     child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          sleepHours = tempSleepHours;
+                      onPressed: () async {
+                        await FirebaseDatabase.instance
+                            .ref('users/${FirebaseAuth.instance.currentUser!.uid}/Weekly/${DateTime.now().weekday.toString()}')
+                            .update({
+                          'sleep': tempSleepHours,
                         });
                         Navigator.pop(context);
                       },

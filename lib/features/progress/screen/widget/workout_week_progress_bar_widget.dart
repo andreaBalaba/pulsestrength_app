@@ -1,24 +1,25 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
 
 class WorkoutChartWidget extends StatelessWidget {
-  const WorkoutChartWidget({super.key});
+  final double weeklyAverage;
+  final List<double> dailyWorkoutMinutes;
 
+  const WorkoutChartWidget({
+    super.key,
+    required this.weeklyAverage,
+    required this.dailyWorkoutMinutes,
+  });
 
   @override
   Widget build(BuildContext context) {
     double autoScale = Get.width / 360;
 
-    List<int> dailyWorkoutMinutes = [90, 45, 120, 75, 60, 150, 30];
-
-    String formatTime(int minutes) {
-      int hours = minutes ~/ 60; 
-      int mins = minutes % 60;
-      return '$hours hr ${mins > 0 ? '$mins min' : ''}';
-    }
+    int weeklyHours = (weeklyAverage / 60).floor();
+    int weeklyMinutes = (weeklyAverage % 60).toInt();
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5.0 * autoScale),
@@ -57,8 +58,15 @@ class WorkoutChartWidget extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                         children: [
-                          const TextSpan(text: "1 ", style: TextStyle(color: AppColors.pBlackColor)),
-                          TextSpan(text: 1 == 1 ? "hr " : "hrs ", style: TextStyle(fontSize: 14 * autoScale, color: AppColors.pBGGreyColor)),
+                          TextSpan(
+                              text: "$weeklyHours ",
+                              style: const TextStyle(
+                                  color: AppColors.pBlackColor)),
+                          TextSpan(
+                              text: weeklyHours == 1 ? "hr" : "hrs",
+                              style: TextStyle(
+                                  fontSize: 14 * autoScale,
+                                  color: AppColors.pBGGreyColor)),
                         ],
                       ),
                       textAlign: TextAlign.center,
@@ -74,10 +82,15 @@ class WorkoutChartWidget extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                         children: [
-                          const TextSpan(text: "1 ", style: TextStyle(color: AppColors.pBlackColor)),
-                          TextSpan(text: 1 == 1 ? "hr " : "hrs ", style: TextStyle(fontSize: 14 * autoScale, color: AppColors.pBGGreyColor)),
-                          const TextSpan(text: 25 > 0 ? "25 " : "", style: TextStyle(color: AppColors.pBlackColor)),
-                          TextSpan(text: (25 == 1) ? "min" : "mins", style: TextStyle(fontSize: 14 * autoScale, color: AppColors.pBGGreyColor)),
+                          TextSpan(
+                              text: weeklyMinutes > 0 ? "$weeklyMinutes " : "",
+                              style: const TextStyle(
+                                  color: AppColors.pBlackColor)),
+                          TextSpan(
+                              text: (weeklyMinutes == 1) ? "min" : "mins",
+                              style: TextStyle(
+                                  fontSize: 14 * autoScale,
+                                  color: AppColors.pBGGreyColor)),
                         ],
                       ),
                       textAlign: TextAlign.center,
@@ -93,23 +106,32 @@ class WorkoutChartWidget extends StatelessWidget {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: (dailyWorkoutMinutes.reduce((a, b) => a > b ? a : b) * 1.2).toDouble(),
+                maxY: 300, // Assuming max 5 hours (300 minutes) as full height
                 barTouchData: BarTouchData(
                   touchTooltipData: BarTouchTooltipData(
                     tooltipRoundedRadius: 8,
                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
                       int minutes = rod.toY.toInt();
+                      String unit = minutes == 1
+                          ? "min"
+                          : "mins"; // Adjust unit based on minute value
                       return BarTooltipItem(
-                        formatTime(minutes),
-                        const TextStyle(color: AppColors.pWhiteColor, fontFamily: 'Poppins'),
+                        "$minutes $unit",
+                        const TextStyle(
+                            color: AppColors.pWhiteColor,
+                            fontFamily: 'Poppins'),
                       );
                     },
                   ),
                 ),
                 titlesData: FlTitlesData(
                   show: true,
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(
+                      sideTitles:
+                          SideTitles(showTitles: false)), // Hide top labels
+                  rightTitles: const AxisTitles(
+                      sideTitles:
+                          SideTitles(showTitles: false)), // Hide right labels
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
@@ -118,33 +140,33 @@ class WorkoutChartWidget extends StatelessWidget {
                         return Padding(
                           padding: const EdgeInsets.only(top: 8.0),
                           child: ReusableText(
-                            text: days[value.toInt()],
-                            size: 14 * autoScale,
-                          ),
+                              text: days[value.toInt()], size: 14 * autoScale),
                         );
                       },
                       reservedSize: 28,
                     ),
                   ),
-                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
                 barGroups: dailyWorkoutMinutes.asMap().entries.map((entry) {
                   int index = entry.key;
-                  int value = entry.value;
+                  double value = entry.value;
 
                   return BarChartGroupData(
                     x: index,
                     barRods: [
                       BarChartRodData(
-                        toY: value.toDouble(),
+                        toY: value,
                         color: AppColors.pOrangeColor,
                         width: 16 * autoScale,
                         borderRadius: BorderRadius.circular(6),
                         backDrawRodData: BackgroundBarChartRodData(
                           show: true,
-                          toY: (dailyWorkoutMinutes.reduce((a, b) => a > b ? a : b) * 1.2).toDouble(),
+                          toY: 300,
                           color: AppColors.pLightGreyColor,
                         ),
                       ),

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pulsestrength/api/services/add_foods_data.dart';
+import 'package:pulsestrength/api/services/add_weekly.dart';
 import 'package:pulsestrength/features/assessment/screen/get_started_page.dart';
 import 'package:pulsestrength/features/authentication/controller/login_controller.dart';
 import 'package:pulsestrength/features/authentication/screen/login_page.dart';
@@ -72,7 +73,9 @@ class SignUpController extends GetxController {
       }
 
       final bool isNewUser = await _ensureUserDataInDatabase(googleUserDetails);
+      await addWeekly();
       addFoodData();
+      
 
       final DatabaseReference userRef = _databaseRef.child("users").child(googleUserDetails.uid);
       final DataSnapshot snapshot = await userRef.get();
@@ -128,6 +131,11 @@ class SignUpController extends GetxController {
         "isDataCollected": false,
         "isCalculatorOnboarded": false,
         "created_at": DateTime.now().toIso8601String(),
+        "workouts": [],
+        "sleep": 0,
+        "water": 0,
+        "calories": 0,
+        "steps": 0,
       });
       print("Google user data saved successfully.");
     } catch (e) {
@@ -162,7 +170,9 @@ class SignUpController extends GetxController {
         await userCredential.user!.sendEmailVerification();
 
         await _saveUserData(userCredential.user!.uid);
+        await addWeekly();
         addFoodData();
+        
 
         Get.snackbar(
           "Verify Your Email",
@@ -193,6 +203,11 @@ class SignUpController extends GetxController {
       "isDataCollected": false,
       "isCalculatorOnboarded": false,
       "created_at": DateTime.now().toIso8601String(),
+      "workouts": [],
+      "sleep": 0,
+      "water": 0,
+      "calories": 0,
+      "steps": 0,
     });
   }
 

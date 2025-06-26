@@ -1,12 +1,18 @@
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:pulsestrength/api/services/add_daily_plan.dart';
 import 'package:pulsestrength/features/assessment/controller/assessment_controller.dart';
 import 'package:pulsestrength/features/assessment/screen/summary_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_button.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
-
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:firebase_database/firebase_database.dart';
 
 class AnyDiscomfortPage extends StatefulWidget {
   const AnyDiscomfortPage({super.key});
@@ -18,7 +24,6 @@ class AnyDiscomfortPage extends StatefulWidget {
 class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
   final AssessmentController controller = Get.put(AssessmentController());
 
-
   final List<String> icons = [
     IconAssets.pHealthyIcon,
     IconAssets.pBackIcon,
@@ -28,6 +33,8 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
   ];
 
   double autoScale = Get.width / 400;
+
+  final box = GetStorage();
 
   @override
   void initState() {
@@ -40,7 +47,6 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
     final screenWidth = Get.width;
     final screenHeight = Get.height;
     final List<String> choices = controller.discomfortChoices;
-
 
     return Scaffold(
       backgroundColor: AppColors.pBGWhiteColor,
@@ -117,8 +123,6 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
                   TextSpan(text: "discomfort", style: TextStyle(color: AppColors.pSOrangeColor)),
                   TextSpan(text: "?", style: TextStyle(color: AppColors.pBlackColor)),
                 ],
-
-
               ),
               textAlign: TextAlign.center,
             ),
@@ -185,13 +189,59 @@ class _AnyDiscomfortPageState extends State<AnyDiscomfortPage> {
               onPressed: controller.selectedAnyDiscomfortIndex.value == -1
                   ? null
                   : () async {
-                  await controller.saveAssessmentAnswer(
-                  "discomfort",
-                  controller.discomfortChoices[controller.selectedAnyDiscomfortIndex.value],
-                  );
+                      await controller.saveAssessmentAnswer(
+                        "discomfort",
+                        controller.discomfortChoices[controller.selectedAnyDiscomfortIndex.value],
+                      );
 
-                Get.offAll(() => const SummaryPage(), transition: Transition.noTransition);
-              },
+                      String jsonString = await rootBundle.loadString(
+                          'lib/api/Personalized_Workout_Plan.json');
+
+                      Map<String, dynamic> jsonData = jsonDecode(jsonString);
+
+                      List workouts = jsonData['plan_id'];
+
+                      List updatedWorkouts = workouts.where(
+                        (element) {
+                          return element['user_profile']['special_event'] ==
+                              box.read('special_event');
+                        },
+                      ).where(
+                        (element) {
+                          return element['user_profile']['sex'] ==
+                              box.read('sex');
+                        },
+                      ).where(
+                        (element) {
+                          return element['user_profile']['focus_area'] ==
+                              box.read('focus_area');
+                        },
+                      ).where(
+                        (element) {
+                          return element['user_profile']['main_goal'] ==
+                              box.read('main_goal');
+                        },
+                      ).where(
+                        (element) {
+                          return element['user_profile']['motivation'] ==
+                              box.read('motivation');
+                        },
+                      ).toList();
+
+                      await FirebaseDatabase.instance
+                          .ref('users/${FirebaseAuth.instance.currentUser!.uid}')
+                          .update({
+                        'workouts': updatedWorkouts.isNotEmpty
+                            ? updatedWorkouts.first['workout_plan']
+                            : workouts.first['workout_plan']
+                      }).whenComplete(
+                        () {
+                          addDailyPlan();
+                          Get.offAll(() => const SummaryPage(),
+                              transition: Transition.noTransition);
+                        },
+                      );
+                    },
               color: controller.selectedAnyDiscomfortIndex.value == -1
                   ? AppColors.pNoColor
                   : AppColors.pGreenColor,

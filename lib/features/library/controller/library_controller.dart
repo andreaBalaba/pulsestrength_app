@@ -42,19 +42,26 @@ class LibraryController extends GetxController {
       final snapshot = await databaseRef.child('users/$userId/savedEquipment').get();
       if (snapshot.exists) {
         try {
-          final Map<dynamic, dynamic> rawData = snapshot.value as Map<dynamic, dynamic>;
-          savedEquipmentList.value = rawData.values.map((item) {
-            // Convert Map<dynamic, dynamic> to Map<String, dynamic>
-            final Map<String, dynamic> stringMap = {};
-            (item as Map<dynamic, dynamic>).forEach((key, value) {
-              stringMap[key.toString()] = value;
-            });
-            return Equipment.fromJson(stringMap);
-          }).toList();
+          final Map<dynamic, dynamic>? rawData = snapshot.value as Map<dynamic, dynamic>?;
+          if (rawData != null) {
+            savedEquipmentList.value = rawData.entries.map((entry) {
+              final equipmentId = entry.key;
+              final equipmentData = entry.value as Map<dynamic, dynamic>;
+              final Map<String, dynamic> stringMap = {};
+              equipmentData.forEach((key, value) {
+                stringMap[key.toString()] = value;
+              });
+              return Equipment.fromJson(stringMap);
+            }).toList();
+          } else {
+            savedEquipmentList.value = [];
+          }
         } catch (e) {
           print('Error loading saved equipment: $e');
           savedEquipmentList.value = [];
         }
+      } else {
+        savedEquipmentList.value = [];
       }
     } else {
       print("No user is logged in");

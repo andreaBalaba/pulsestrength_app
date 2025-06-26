@@ -1,5 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pulsestrength/api/services/add_daily_plan.dart';
+import 'package:pulsestrength/api/services/add_weekly.dart';
 import 'package:pulsestrength/features/chatbot/controller/chatbot_controller.dart';
 import 'package:pulsestrength/features/chatbot/new_chatbot_page.dart';
 import 'package:pulsestrength/features/home/controller/home_controller.dart';
@@ -14,6 +17,7 @@ import 'package:pulsestrength/features/settings/screen/setting_page.dart';
 import 'package:pulsestrength/utils/global_assets.dart';
 import 'package:pulsestrength/utils/global_variables.dart';
 import 'package:pulsestrength/utils/reusable_text.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -36,10 +40,57 @@ class _HomePageState extends State<HomePage> {
   final PageController _pageController = PageController();
   final GlobalKey _dailyTaskKey = GlobalKey();
 
-  @override
+   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
+    getWeeklyData();
+    getDailyData();
+  }
+
+  bool hasLoaded = false;
+  dynamic dailyData;
+  getDailyData() {
+    FirebaseDatabase.instance
+        .ref('users/${FirebaseAuth.instance.currentUser!.uid}/Daily Plan')
+        .orderByChild('date')
+        .equalTo('${DateTime.now().day}-${DateTime.now().month}-${DateTime.now().year}')
+        .once()
+        .then((snapshot) {
+      if (snapshot.snapshot.value != null) {
+        setState(() {
+          dailyData = snapshot.snapshot.value;
+          hasLoaded = true;
+        });
+      } else {
+        final json = addDailyPlan();
+        setState(() {
+          dailyData = json;
+          dailyData['workouts'] = [];
+          hasLoaded = true;
+        });
+      }
+    });
+  }
+
+  getWeeklyData() {
+    FirebaseDatabase.instance
+        .ref('users/${FirebaseAuth.instance.currentUser!.uid}/Weekly')
+        .once()
+        .then((snapshot) {
+      if (snapshot.snapshot.value != null) {
+        if (DateTime.now().weekday == 1) {
+          Map<String, dynamic>? weeklyData = snapshot.snapshot.value as Map<String, dynamic>?;
+          if (weeklyData?['year'] != DateTime.now().year.toString() &&
+              weeklyData?['month'] != DateTime.now().month.toString() &&
+              weeklyData?['day'] != DateTime.now().day.toString()) {
+            addWeekly();
+          }
+        }
+      } else {
+        addWeekly();
+      }
+    });
   }
 
   @override
@@ -144,7 +195,29 @@ class _HomePageState extends State<HomePage> {
               _buildHomeContent(),
               const LibraryPage(),
               ChatBotScreen(gender: botController.gender.value, age: botController.age.value, height: botController.height.value, weight: botController.weight.value, isDisabled: false),
-              const ProgressPage(),
+              StreamBuilder<DatabaseEvent>(
+                  stream: FirebaseDatabase.instance
+                      .ref('users/${FirebaseAuth.instance.currentUser!.uid}')
+                      .onValue,
+                  builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(child: Text('Loading'));
+                    } else if (snapshot.hasError) {
+                      return const Center(child: Text('Something went wrong'));
+                    } else if (snapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    dynamic data = snapshot.data!.snapshot.value;
+
+                    return ProgressPage(
+                      data: dailyData ?? {},
+                      id: FirebaseAuth.instance.currentUser!.uid,
+                      workouts: data['workouts']['weekly_schedule']
+                              [DateTime.now().weekday - 1]['exercises'] ??
+                          [],
+                    );
+                  }),
               const MealPage()
             ],
           ),
@@ -269,26 +342,57 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 15 * autoScale), // Space between header and PlanCard
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0 * autoScale),
-              child: GestureDetector(
-                onTap: _scrollToDailyTask, // Scroll to Daily Task
-                child: const PlanCardWidget(),
-              ),
-            ),
+            SizedBox(height: 15 * autoScale),
+            hasLoaded
+                ? Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0 * autoScale),
+                    child: GestureDetector(
+                      onTap: _scrollToDailyTask,
+                      child: PlanCardWidget(
+                        count: dailyData['workouts'] == null
+                            ? 0
+                            : dailyData['workouts'].length,
+                      ),
+                    ),
+                  )
+                : const Center(
+                    child: CircularProgressIndicator(),
+                  ),
             SizedBox(height: 20 * autoScale),
             const WorkoutPlanList(),
             SizedBox(height: 15 * autoScale),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0 * autoScale),
-              child: DailyTaskList(key: _dailyTaskKey), // Assign the GlobalKey here
-            ),
+            StreamBuilder<DatabaseEvent>(
+                stream: FirebaseDatabase.instance
+                    .ref('users/${FirebaseAuth.instance.currentUser!.uid}')
+                    .onValue,
+                builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: Text('Loading'));
+                  } else if (snapshot.hasError) {
+                    return const Center(child: Text('Something went wrong'));
+                  } else if (snapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  dynamic data = snapshot.data!.snapshot.value;
+
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.0 * autoScale),
+                    child: DailyTaskList(
+                      key: _dailyTaskKey,
+                      id: FirebaseAuth.instance.currentUser!.uid,
+                      workouts: data['workouts']['weekly_schedule']
+                              [DateTime.now().weekday - 1]['exercises'] ??
+                          [],
+                    ),
+                  );
+                }),
           ],
         ),
       ),
     );
   }
+
 
 
   BottomNavigationBarItem _buildNavItem({
