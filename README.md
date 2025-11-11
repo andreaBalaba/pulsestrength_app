@@ -1,4 +1,4 @@
-# pulsestrength
+# pulsestrength with chatbot project in IT Elective 3&4
 
 A new Flutter project.
 
